@@ -1,0 +1,15 @@
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.out
+*.app
