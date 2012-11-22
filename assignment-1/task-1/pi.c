@@ -2,53 +2,66 @@
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/time.h>
 
 typedef struct {
-  int max_iterations, max_time;
-} boundaries;
-
-long double pi = 0;
-int done;
+  long int max_iterations, max_time;
+  long double pi;
+  int done;
+  pthread_mutex_t lock;
+} data;
 
 void *calculate(void *args) {
-  int i = 0;
-  int time_elapsed = 0;
-  boundaries *thread_boundaries = args;
+  int i = 0, time_elapsed = 0;
+  struct timeval start_time, current_time;
+  data* thread_data = args;
 
-  int begin = (int)time(NULL);
-  time_t timer;
-  
-  while ((i < thread_boundaries->max_iterations) && (time_elapsed < thread_boundaries->max_time)) {
+  gettimeofday(&start_time, NULL);
 
-    pi = pi + (pow(-1, i) / (2 * i + 1));
-    
-    timer = time(NULL);
-    time_elapsed = ((int)timer - begin);
+  while ((i < thread_data->max_iterations) && (time_elapsed < thread_data->max_time)) {
+    pthread_mutex_lock(&(thread_data->lock));
+    thread_data->pi += (pow(-1, i) / (2 * i + 1));
+    pthread_mutex_unlock(&(thread_data->lock));
+
+    gettimeofday(&current_time, NULL);    
+    time_elapsed = ((current_time.tv_sec * 1000000 + current_time.tv_usec) - (start_time.tv_sec * 1000000 + start_time.tv_usec));
 
     i++;
   }
 
-  done = 1;
+  thread_data->done = 1;
   return NULL;
 }
 
 int main(int argc, char* argv[]) {
-  int max_time, max_iterations;
+  data* thread_data;
+  thread_data = malloc(sizeof(data));
 
-  boundaries* thread_boundaries;
-  thread_boundaries = malloc(sizeof(boundaries));
+  if (argc != 3) {
+    printf("Wrong number of arguments (max time, max iterations)\n");
+    return -1;
+  }
+  thread_data->max_time = atoi(argv[1]) * 1000000;
+  thread_data->max_iterations = atoi(argv[2]);
+  thread_data->done = 0;
 
-  thread_boundaries->max_time = atoi(argv[1]);
-  thread_boundaries->max_iterations = atoi(argv[2]);
+  if (pthread_mutex_init(&(thread_data->lock), NULL) != 0) {
+    printf("Error creating mutex!\n");
+    return -1;
+  }
 
   pthread_t pi_thread;
-  pthread_create(&pi_thread, NULL, calculate, thread_boundaries);
+  if (pthread_create(&pi_thread, NULL, calculate, thread_data) != 0) {
+    printf("Error creating thread!\n");
+    return -1;
+  }
 
-  int i = 0;
-  while (done != 1) {
+  while (thread_data->done != 1) {
     usleep(100000);
-    printf("The value of π ≈ %.40Le\n", pi * 4);
-    i++;
+    pthread_mutex_lock(&(thread_data->lock));
+    printf("The value of π ≈ %.40Le\n", thread_data->pi * 4);
+    pthread_mutex_unlock(&(thread_data->lock));
   }
 
   pthread_join(pi_thread, NULL);
