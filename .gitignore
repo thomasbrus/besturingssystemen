@@ -13,3 +13,6 @@
 # Executables
 *.out
 *.app
+
+# OS X
+.DS_STORE
