@@ -5,6 +5,9 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+#define MAX_TIME_REACHED 42
+#define MAX_ITERATIONS_REACHED 1337
+
 typedef struct {
   // Maximum time in microseconds
   int max_time;
@@ -39,7 +42,7 @@ void *calculate(void *args) {
     i++;
   }
 
-  thread_data->done = (i >= thread_data->max_iterations) ? 1 : 2;
+  thread_data->done = (i >= thread_data->max_time) ? MAX_TIME_REACHED : MAX_ITERATIONS_REACHED;
   return NULL;
 }
 
@@ -75,17 +78,18 @@ int main(int argc, char* argv[]) {
   while (thread_data->done == 0) {
     usleep(100000);
     pthread_mutex_lock(&(thread_data->lock));
-    printf("The value of π ≈ %.40Le\n", thread_data->pi * 4);
+    printf("The value of π ≈ %.40Le\n", thread_data->pi * 4); // Leibniz
     pthread_mutex_unlock(&(thread_data->lock));
   }
 
   // Join the thread, in this way we wait for the child process to exit
   pthread_join(pi_thread, NULL);
 
-  if (thread_data->done == 1) {
-    printf("Max iterations reached\n");
-  } else {
+  if (thread_data->done == MAX_TIME_REACHED) {
     printf("Max time reached\n");
+  } else if(thread_data->done == MAX_ITERATIONS_REACHED) {
+    printf("Max iterations reached\n");
   }
+
   return 0;
 }
