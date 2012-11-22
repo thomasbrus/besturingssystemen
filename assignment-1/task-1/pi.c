@@ -2,13 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
-#include <unistd.h>
 #include <sys/time.h>
 
 typedef struct {
   // Maximum time in microseconds
   int max_time;
-  long int max_iterations, 
+  long int max_iterations; 
   long double pi;
   int done;
   // Used for locking on pi
