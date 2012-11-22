@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <sys/time.h>
 
 typedef struct {
@@ -26,6 +27,7 @@ void *calculate(void *args) {
   while ((i < thread_data->max_iterations) && (time_elapsed < thread_data->max_time)) {
     // Lock while calculating pi
     pthread_mutex_lock(&(thread_data->lock));
+    // Leibniz formula
     thread_data->pi += (pow(-1, i) / (2 * i + 1));
     pthread_mutex_unlock(&(thread_data->lock));
 
@@ -37,7 +39,7 @@ void *calculate(void *args) {
     i++;
   }
 
-  thread_data->done = 1;
+  thread_data->done = (i >= thread_data->max_iterations) ? 1 : 2;
   return NULL;
 }
 
@@ -70,7 +72,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Wait for thread to die
-  while (thread_data->done != 1) {
+  while (thread_data->done == 0) {
     usleep(100000);
     pthread_mutex_lock(&(thread_data->lock));
     printf("The value of π ≈ %.40Le\n", thread_data->pi * 4);
@@ -80,5 +82,10 @@ int main(int argc, char* argv[]) {
   // Join the thread, in this way we wait for the child process to exit
   pthread_join(pi_thread, NULL);
 
+  if (thread_data->done == 1) {
+    printf("Max iterations reached\n");
+  } else {
+    printf("Max time reached\n");
+  }
   return 0;
 }
