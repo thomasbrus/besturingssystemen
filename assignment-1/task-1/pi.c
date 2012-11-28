@@ -74,9 +74,11 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  // Wait for thread to die
+  // Wait for pi thread to die
   while (thread_data->done == 0) {
     usleep(100000);
+
+    // Lock for reading pi
     pthread_mutex_lock(&(thread_data->lock));
     printf("The value of π ≈ %.40Le\n", thread_data->pi * 4); // Leibniz
     pthread_mutex_unlock(&(thread_data->lock));
