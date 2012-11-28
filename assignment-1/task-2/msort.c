@@ -2,17 +2,17 @@
 #include <stdlib.h>
 
 task_t** splitTasks(task_t** tasks, int start, int count){  
-	int i;
+  int i;
 
-	// Allocate memory or return NULL.
-	task_t** result = (task_t**) malloc(sizeof(task_t*) * count);
-	if (NULL == result) return NULL;
-	
-	//Generate sublist
+  // Allocate memory or return NULL.
+  task_t** result = (task_t**) malloc(sizeof(task_t*) * count);
+  if (NULL == result) return NULL;
+
+  // Generate sublist
   for (i = 0; i < count; i++) {
-    result[i] = tasks[start + i];       
+  result[i] = tasks[start + i];       
   }
-	return result;
+  return result;
 }
 
 void merge(task_t** tasks, task_t** tasksleft, int n1,task_t** tasksright, int n2){
@@ -41,24 +41,23 @@ void merge(task_t** tasks, task_t** tasksleft, int n1,task_t** tasksright, int n
 }
 
 void msort(task_t** tasks, int count){
-	// Base case: 0 elements or 1 element are already 'sorted'
-	if(count<=1){
+  // Base case: 0 elements or 1 element are already 'sorted'
+  if(count<=1){
     return;	
   }
 
-	 // Divide input list length in two parts
-	int size_left = count/2;
-	int size_right = count - size_left;
+  // Divide input list length in two parts
+  int size_left = count/2;
+  int size_right = count - size_left;
 	
-	// Make sublist with these sizes
-	task_t** left = splitTasks(tasks, 0, size_left);
-	task_t** right = splitTasks(tasks, size_left, size_right);
+  // Make sublist with these sizes
+  task_t** left = splitTasks(tasks, 0, size_left);
+  task_t** right = splitTasks(tasks, size_left, size_right);
 	
-	// Sort these sublists (with recursion)
-	msort(left, size_left);
-	msort(right, size_right);
+  // Sort these sublists (with recursion)
+  msort(left, size_left);
+  msort(right, size_right);
 	
-	// Merge the sorted sublists together
-	merge(tasks, left, size_left, right, size_right);
+  // Merge the sorted sublists together
+  merge(tasks, left, size_left, right, size_right);
 }
-
