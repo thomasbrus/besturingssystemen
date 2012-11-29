@@ -1,9 +1,12 @@
 #include "as1_t2.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <pthread.h>
 
 typedef struct {
   int start;
   int size;
+  task_t** tasks;
 } data;
 
 
@@ -18,6 +21,7 @@ task_t** split_tasks(task_t** tasks, int start, int count){
   for (i = 0; i < count; i++) {
     result[i] = tasks[start + i];       
   }
+  
   return result;
 }
 
@@ -52,6 +56,7 @@ void *thread_sort(void *args){
   
   int start = thread_data->start;
   int size = thread_data->size;
+  task_t** tasks = thread_data->tasks;
   
   task_t** result = split_tasks(tasks, start, size);
   msort(result, size);
@@ -74,31 +79,37 @@ void msort(task_t** tasks, int count){
 	thread_data_l = malloc(sizeof(data));
   thread_data_l->start = 0;
   thread_data_l->size = size_left;
+  thread_data_l->tasks = tasks;
   pthread_t merge_sort_thread_l;  
   task_t** left; 
+  void *left_v;
   
   //Right
   data* thread_data_r;
 	thread_data_r = malloc(sizeof(data));
-  thread_data_r->start = 0;
-  thread_data_r->size = size_left;
-  pthread_t merge_sort_thread_r;
-  task_t** right;
- 
- 	if (pthread_create(&merge_sort_thread_l, NULL,  thread_sort, thread_data_l) != 0){
-    printf("Error creating left thread!\n");
-    return -1;
-	}
-	 
-	if (pthread_create(&merge_sort_thread_r, NULL,  thread_sort, thread_data_r) != 0){
-    printf("Error creating right thread!\n");
-    return -1;
-	}
-	
+  thread_data_r->start = size_left;
+  thread_data_r->size = size_right;
+  thread_data_r->tasks = tasks;
+  //pthread_t merge_sort_thread_r;
 
-	pthread_join(merge_sort_thread, (void)left);
-	pthread_join(merge_sort_thread, (void)right);
-	
+  //void *right_v;
+ 	  task_t** right = thread_sort(thread_data_r);
+	if (pthread_create(&merge_sort_thread_l, NULL,  thread_sort, thread_data_l) != 0){
+		printf("Error creating left thread!\n");		
+	}
+
+	 
+//	if (pthread_create(&merge_sort_thread_r, NULL,  thread_sort, thread_data_r) != 0){
+	//	printf("Error creating right thread!\n");
+
+	//}	
+
+	pthread_join(merge_sort_thread_l, &left_v);
+	//pthread_join(merge_sort_thread_r, &right_v);
+	//right = right_v;
+	left = left_v;
   // Merge the sorted sublists together
   merge(tasks, left, size_left, right, size_right);
+  //free(merge_sort_thread_l);
+  //free(merge_sort_thread_r);
 }
