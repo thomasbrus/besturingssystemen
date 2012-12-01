@@ -1,6 +1,5 @@
 #include "as1_t2.h"
 #include <stdlib.h>
-#include <stdio.h>
 #include <pthread.h>
 
 typedef struct {
@@ -9,20 +8,26 @@ typedef struct {
   task_t** tasks;
 } data;
 
+void *splitTasks(void *args) {
+  data* data = args;
 
-task_t** split_tasks(task_t** tasks, int start, int count){  
+  printf("yet another process\n");
+
+  int start = data->start;
+  int size = data->size;
+  task_t** tasks = data->tasks;
   int i;
 
   // Allocate memory or return NULL.
-  task_t** result = (task_t**) malloc(sizeof(task_t*) * count);
+  task_t** result = (task_t**) malloc(sizeof(task_t*) * size);
   if (NULL == result) return NULL;
 
   // Generate sublist
-  for (i = 0; i < count; i++) {
+  for (i = 0; i < size; i++) {
     result[i] = tasks[start + i];       
   }
-  
-  return result;
+
+  return (void*) result;
 }
 
 void merge(task_t** tasks, task_t** tasksleft, int size_left,task_t** tasksright, int size_right){
@@ -51,65 +56,47 @@ void merge(task_t** tasks, task_t** tasksleft, int size_left,task_t** tasksright
   }        
 }
 
-void *thread_sort(void *args){
-  data* thread_data = args;
-  
-  int start = thread_data->start;
-  int size = thread_data->size;
-  task_t** tasks = thread_data->tasks;
-  
-  task_t** result = split_tasks(tasks, start, size);
-  msort(result, size);
-  
-  return result;
-}
-
 void msort(task_t** tasks, int count){
   // Base case: 0 or 1 element are already 'sorted'
-  if(count<=1){
+  if (count <= 1){
     return;	
   }
 
   // Divide input list length in two parts
   int size_left = count / 2;
-  int size_right = count - size_left;	
+  int size_right = count - size_left;
 	
-	//Left
-	data* thread_data_l;
-	thread_data_l = malloc(sizeof(data));
-  thread_data_l->start = 0;
-  thread_data_l->size = size_left;
-  thread_data_l->tasks = tasks;
-  pthread_t merge_sort_thread_l;  
-  task_t** left; 
-  void *left_v;
-  
-  //Right
-  data* thread_data_r;
-	thread_data_r = malloc(sizeof(data));
-  thread_data_r->start = size_left;
-  thread_data_r->size = size_right;
-  thread_data_r->tasks = tasks;
-  //pthread_t merge_sort_thread_r;
+  // Make sublist with these sizes
+  data* data_l;
+  data_l = malloc(sizeof(data));
+  data_l->tasks = tasks;
+  data_l->start = 0;
+  data_l->size = size_left;
 
-  //void *right_v;
- 	  task_t** right = thread_sort(thread_data_r);
-	if (pthread_create(&merge_sort_thread_l, NULL,  thread_sort, thread_data_l) != 0){
-		printf("Error creating left thread!\n");		
-	}
+  pthread_t merge_sort_l;  
+  pthread_create(&merge_sort_l, NULL, splitTasks, data_l);
 
-	 
-//	if (pthread_create(&merge_sort_thread_r, NULL,  thread_sort, thread_data_r) != 0){
-	//	printf("Error creating right thread!\n");
+  data* data_r;
+  data_r = malloc(sizeof(data));
+  data_r->tasks = tasks;
+  data_r->start = size_left;
+  data_r->size = size_right;
 
-	//}	
+  pthread_t merge_sort_r;  
+  pthread_create(&merge_sort_r, NULL, splitTasks, data_r);
 
-	pthread_join(merge_sort_thread_l, &left_v);
-	//pthread_join(merge_sort_thread_r, &right_v);
-	//right = right_v;
-	left = left_v;
+  // Wait for the threads to complete and capture the results
+  void* ret = NULL;
+
+  pthread_join(merge_sort_l, &ret);
+  task_t** left = (task_t**)ret;
+  pthread_join(merge_sort_r, &ret);
+  task_t** right = (task_t**)ret;
+
+  // Sort these sublists (with recursion)
+  msort(left, size_left);
+  msort(right, size_right);
+	
   // Merge the sorted sublists together
   merge(tasks, left, size_left, right, size_right);
-  //free(merge_sort_thread_l);
-  //free(merge_sort_thread_r);
 }
