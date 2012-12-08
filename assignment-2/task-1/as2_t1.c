@@ -114,6 +114,7 @@ void testAllocHandlesOutOfMemory(void){
 		}
 	}
 
+	printf("RTC = %d, FTC = %d\n", REAL_TASK_COUNT, FAIR_TASK_COUNT);
 	assert(REAL_TASK_COUNT >= FAIR_TASK_COUNT);
 	assert(REAL_TASK_COUNT <= MAX_TASK_COUNT);
 	assert( dealtWithOutOfMemory );
