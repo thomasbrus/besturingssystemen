@@ -114,7 +114,6 @@ void testAllocHandlesOutOfMemory(void){
 		}
 	}
 
-	printf("RTC = %d, FTC = %d\n", REAL_TASK_COUNT, FAIR_TASK_COUNT);
 	assert(REAL_TASK_COUNT >= FAIR_TASK_COUNT);
 	assert(REAL_TASK_COUNT <= MAX_TASK_COUNT);
 	assert( dealtWithOutOfMemory );
@@ -139,6 +138,7 @@ void testReuseFreedMemory(void){
 
 	/* All slots are taken (due to testAllocHandlesOutOfMemory). So we free one and allocate one, which should be identical to that slot. */
 	task_free(tasks[1]);
+
 	task = task_alloc();
 	/* Allocation works after freeing one element */
 	assert(task != NULL);

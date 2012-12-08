@@ -2,35 +2,41 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* TODO: keep track of free slots in an array (of booleans)
- * Use linear search in task_alloc to find the first free slot
- * Make sure all tests pass
- */
-
-unsigned long memory_address;
+int *memory_slots[MAX_TASK_COUNT] = { 0 };
 
 void *task_alloc(void) {
-  if (memory_address) {
-    /* Increase the pointer by the size of one task_t */
-    memory_address += sizeof(task_t);
-  } else {
-    /* Set memory pointer to the start of the block */
-    memory_address = (unsigned long)get_MEM_BLOCK_START();
+  unsigned long address;
+
+  /* Find the first free slot */
+  int slot = 0;
+  while (slot <= MAX_TASK_COUNT && (int)memory_slots[slot] == 1) {
+    slot++;
   }
 
-  /* Check if there's enough space left */
-  if (memory_address + sizeof(task_t) >= ((unsigned long)get_MEM_BLOCK_START() + MEM_BLOCK_SIZE)) {
+  if (slot < MAX_TASK_COUNT) {
+    /* Mark this memory block as taken */
+    memory_slots[slot] = (int *)1;
+  } else {
+    /* All memory blocks are taken */
     return NULL;
   }
 
-  return (void *)memory_address;
+  /* Calculate address from the available slot index */
+  address = (unsigned long)get_MEM_BLOCK_START() + (slot * sizeof(task_t));
+  return (void *)address;
 }
 
 void task_free(void *ptr) {
+  unsigned long slot;
+
   /* Ignore if the pointer is null */
   if (ptr == NULL) return;
 
-  /* Set the memory address pointer to the beginning of the released memory block */
-  memory_address = (unsigned long)ptr;
-  memory_address -= sizeof(task_t);
+  /* Calculate to which slot this pointer belongs */
+  slot = ((unsigned long)ptr - (unsigned long)get_MEM_BLOCK_START()) / sizeof(task_t);
+
+  /* Also ignore if slot is out of bounds */
+  if (slot < 0 || slot >= MAX_TASK_COUNT) return;
+
+  memory_slots[slot] = (int *)0;
 }
