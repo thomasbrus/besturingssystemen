@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* TODO: keep track of free slots in an array (of booleans)
+ * Use linear search in task_alloc to find the first free slot
+ * Make sure all tests pass
+ */
+
 unsigned long memory_address;
 
 void *task_alloc(void) {
@@ -22,4 +27,10 @@ void *task_alloc(void) {
 }
 
 void task_free(void *ptr) {
+  /* Ignore if the pointer is null */
+  if (ptr == NULL) return;
+
+  /* Set the memory address pointer to the beginning of the released memory block */
+  memory_address = (unsigned long)ptr;
+  memory_address -= sizeof(task_t);
 }
