@@ -3,55 +3,78 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Reserve the first halve of the available memory for memory management */
-int memory_management_offset = 524288;
-int memory_slot_count = MAX_TASK_COUNT / 2;
+unsigned long MEMORY_BLOCK_OFFSET = 524288UL;
+int memory_management_initialized = 0;
+
+void initialize_memory_management(int count) {
+  int i;
+
+  /* Initally, the current node of the linked list is the first one */
+  set_current_node(0);
+
+  /* Initialize the nodes of the linked list */
+  for (i = 0; i < count; i++) {
+    int* next_node_address;
+    int* memory_slot_address;
+
+    /* Set which node is next in the chain */
+    next_node_address = (int *)(unsigned long)get_MEM_BLOCK_START() + 1 + (2 * i * sizeof(int));
+    
+    if (i == count - 1) {
+      /* The last node should point back to the first one */
+      *next_node_address = (int *)0;
+    } else {
+      *next_node_address = (int *)(i + 1);
+    }
+
+    /* Store the index of a free memory slot */
+    memory_slot_address = (int *)(unsigned long)get_MEM_BLOCK_START() + 2 + (2 * i * sizeof(int));
+    *memory_slot_address = (int *)i;
+  }
+}
+
+/* Calculates the address of a memory slot from an index */
+int calculate_address_from_memory_slot(int index) {
+  return (unsigned long)get_MEM_BLOCK_START() + MEMORY_BLOCK_OFFSET + sizeof(task_t) * index;
+}
+
+/* Sets the current node of the linked list */
+void set_current_node(int index) {
+  int* current_node_index = (int *)(get_MEM_BLOCK_START());
+  *current_node_index = (int *)index;
+}
 
 void *task_alloc(void) {
-  unsigned long pointer;
+  int memory_slot;
+  int current_node;
+  int next_node;
 
-  /* Find the first free slot */
-  int slot_array_index = 0;
-  
-  int slot_array_location;
-  int *slot_array_pointer;
-
-  while (slot_array_index <= memory_slot_count) {
-    slot_array_location = (unsigned long)get_MEM_BLOCK_START() + sizeof(int) * slot_array_index;    
-    slot_array_pointer = (int *)slot_array_location;    
-    if (*slot_array_pointer == 0) break;
-    slot_array_index++;
+  /* Initialize the linked list on the first run */
+  if (memory_management_initialized == 0) {
+    initialize_memory_management(1024);
+    /* Make sure this isn't ran the next time */
+    memory_management_initialized = 1;
   }
 
-  if (slot_array_index < memory_slot_count) {
-    /* Mark this memory block as taken */    
-    /* memset((void *)slot_array_location, 1, sizeof(int)); */
-    *slot_array_pointer = (int *)1;
-  } else {
-    /* All memory blocks are taken */
-    return NULL;
-  }
+  /* 1. Find out which node is the current node in the linked list */
+  current_node = *(int *)(get_MEM_BLOCK_START());
 
-  /* Calculate address from the available slot index */
-  pointer = (unsigned long)get_MEM_BLOCK_START() + memory_management_offset + (slot_array_index * sizeof(task_t));
-  return (void *)pointer;
+  /* 2. Retrieve the index of the next node */
+  next_node = *((int *)(get_MEM_BLOCK_START()) + 1 + (2 * current_node * sizeof(int)));
+
+  /* 3. Set current node to this node's next */
+  set_current_node(next_node);
+
+  /* 4. Retrieve the index of a free memory slot from this node */
+  memory_slot = *((int *)(get_MEM_BLOCK_START()) + 2 + (2 * current_node * sizeof(int)));
+
+
+  printf("current_node: %d\n", current_node);
+  printf("memory_slot: %d\n", memory_slot);
+  printf("next_node: %d\n", next_node);
+
+  return (void *)calculate_address_from_memory_slot(memory_slot);
 }
 
 void task_free(void *ptr) {
-  int *slot_pointer;
-  int slot_location;
-  unsigned long slot_index;
-
-  /* Ignore if the pointer is null */
-  if (ptr == NULL) return;
-
-  /* Calculate to which slot this pointer belongs */
-  slot_index = ((unsigned long)ptr - (unsigned long)get_MEM_BLOCK_START() - memory_management_offset) / sizeof(task_t);
-
-  /* Also ignore if slot is out of bounds */
-  if (slot_index < 0 || slot_index >= MAX_TASK_COUNT) return;
-  
-  slot_location = (unsigned long)get_MEM_BLOCK_START() + sizeof(int) * slot_index;
-  slot_pointer = (int *)slot_location;
-  *slot_pointer = (int *)0;
 }
