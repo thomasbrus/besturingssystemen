@@ -47,7 +47,10 @@ void *calculate(void *args) {
 }
 
 int main(int argc, char* argv[]) {
+  //Pointer to what becomes thread_data
   data* thread_data;
+  
+  //Allocate memory for the struct thread_data
   thread_data = malloc(sizeof(data));
 
   // Check if the number of arguments is correct
@@ -61,7 +64,7 @@ int main(int argc, char* argv[]) {
   thread_data->max_iterations = atoi(argv[2]);
   thread_data->done = 0;
 
-  // Check if the initialization succeeded
+  // Check if the initialization succeeded by checking that pthread_mutex_init doesn't return 0
   if (pthread_mutex_init(&(thread_data->lock), NULL) != 0) {
     printf("Error creating mutex!\n");
     return -1;
