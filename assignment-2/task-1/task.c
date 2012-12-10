@@ -1,80 +1,102 @@
 #include "as2_t1.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+#include <assert.h>
 
-unsigned long MEMORY_BLOCK_OFFSET = 524288UL;
-int memory_management_initialized = 0;
+/* Utilize 75% of the available space */
+long TASK_COUNT = 65535;
+int linked_list_initialized = 0;
 
-void initialize_memory_management(int count) {
+unsigned long calculate_node_address_from_index(int node_index) {
+  return (unsigned long)get_MEM_BLOCK_START() + sizeof(int) + node_index * (sizeof(task_t) + sizeof(int));
+}
+
+int calculate_index_from_node_address(unsigned long node_address) {
+  return (node_address - (unsigned long)get_MEM_BLOCK_START()) / (sizeof(task_t) + sizeof(int));
+}
+
+void set_current_node(int current_node_index) {
+  int* current_node_pointer = (int *)(get_MEM_BLOCK_START());
+  *current_node_pointer = (int *)current_node_index;
+}
+
+int get_current_node(void) {
+  return *(int *)(get_MEM_BLOCK_START());
+}
+
+int get_next_node_of_node(int node_index) {
+ return *(int *)calculate_node_address_from_index(node_index);
+}
+
+/* Sets the next node for a specific node */
+void set_next_node_of_node(int node_index, int next_node_index) {
+  int* next_node_pointer = (int *)calculate_node_address_from_index(node_index);
+  *next_node_pointer = (int *)next_node_index;
+}
+
+void initialize_linked_list(int count) {
   int i;
 
-  /* Initally, the current node of the linked list is the first one */
+  /* Initially, the current node of the linked list is the first one */
   set_current_node(0);
+  assert(get_current_node() == 0);
 
   /* Initialize the nodes of the linked list */
   for (i = 0; i < count; i++) {
-    int* next_node_address;
-    int* memory_slot_address;
-
-    /* Set which node is next in the chain */
-    next_node_address = (int *)(unsigned long)get_MEM_BLOCK_START() + 1 + (2 * i * sizeof(int));
-    
     if (i == count - 1) {
-      /* The last node should point back to the first one */
-      *next_node_address = (int *)0;
+      /* The last node of the linked list points back to first one */
+      set_next_node_of_node(i, 0);
     } else {
-      *next_node_address = (int *)(i + 1);
+      set_next_node_of_node(i, i + 1);
     }
-
-    /* Store the index of a free memory slot */
-    memory_slot_address = (int *)(unsigned long)get_MEM_BLOCK_START() + 2 + (2 * i * sizeof(int));
-    *memory_slot_address = (int *)i;
   }
-}
-
-/* Calculates the address of a memory slot from an index */
-int calculate_address_from_memory_slot(int index) {
-  return (unsigned long)get_MEM_BLOCK_START() + MEMORY_BLOCK_OFFSET + sizeof(task_t) * index;
-}
-
-/* Sets the current node of the linked list */
-void set_current_node(int index) {
-  int* current_node_index = (int *)(get_MEM_BLOCK_START());
-  *current_node_index = (int *)index;
 }
 
 void *task_alloc(void) {
-  int memory_slot;
-  int current_node;
-  int next_node;
+  int current_node_index;
+  int next_node_index;
+  int task_t_address;
 
   /* Initialize the linked list on the first run */
-  if (memory_management_initialized == 0) {
-    initialize_memory_management(1024);
-    /* Make sure this isn't ran the next time */
-    memory_management_initialized = 1;
+  if (linked_list_initialized == 0) {
+    initialize_linked_list(TASK_COUNT);
+    /* Make sure this is only ran once */
+    linked_list_initialized = 1;
   }
 
-  /* 1. Find out which node is the current node in the linked list */
-  current_node = *(int *)(get_MEM_BLOCK_START());
+  /* Retrieve both the current node and its next node */
+  current_node_index = get_current_node();
+  next_node_index = get_next_node_of_node(current_node_index);
 
-  /* 2. Retrieve the index of the next node */
-  next_node = *((int *)(get_MEM_BLOCK_START()) + 1 + (2 * current_node * sizeof(int)));
+  /* Update the current node of the linked list */
+  set_current_node(next_node_index);
 
-  /* 3. Set current node to this node's next */
-  set_current_node(next_node);
+  /* Make clear this node is already allocated */
+  set_next_node_of_node(current_node_index, -1);
 
-  /* 4. Retrieve the index of a free memory slot from this node */
-  memory_slot = *((int *)(get_MEM_BLOCK_START()) + 2 + (2 * current_node * sizeof(int)));
+  /* The last node of the chain had no next node. This means all memory is allocated */
+  if (current_node_index == -1) return NULL;
 
-
-  printf("current_node: %d\n", current_node);
-  printf("memory_slot: %d\n", memory_slot);
-  printf("next_node: %d\n", next_node);
-
-  return (void *)calculate_address_from_memory_slot(memory_slot);
+  /* Calculate the actual address of the allocated task_t */
+  task_t_address = calculate_node_address_from_index(current_node_index) + sizeof(int);
+  return (void *)task_t_address;
 }
 
 void task_free(void *ptr) {
+  int node_index;
+
+  /* Ignore invalid pointers */
+  if (ptr == NULL) return;
+
+  /* Calculate to which block this pointer belongs */
+  node_index = calculate_index_from_node_address((unsigned long)ptr);
+
+  /* Also ignore out of bound pointers */
+  if (node_index < 0 || node_index >= TASK_COUNT) return;
+
+  /* -1 indicated that the slot is in use, so let's fix that */
+  set_next_node_of_node(node_index, get_current_node());
+
+  /* By updating the linked list's current node, we make sure this slot can be allocated again */
+  set_current_node(node_index);
 }
