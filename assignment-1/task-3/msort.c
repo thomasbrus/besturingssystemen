@@ -3,31 +3,30 @@
 #include <pthread.h>
 
 typedef struct {
-  int start;
-  int size;
   task_t** tasks;
+  int count;
 } data;
 
-void *splitTasks(void *args) {
-  data* data = args;
-
-  printf("yet another process\n");
-
-  int start = data->start;
-  int size = data->size;
-  task_t** tasks = data->tasks;
+/* Copy a part of an array to an new array, beginning with start and ending with start + count - 1. */
+task_t** splitTasks(task_t** tasks, int start, int count){  
   int i;
 
   // Allocate memory or return NULL.
-  task_t** result = (task_t**) malloc(sizeof(task_t*) * size);
+  task_t** result = (task_t**) malloc(sizeof(task_t*) * count);
   if (NULL == result) return NULL;
 
   // Generate sublist
-  for (i = 0; i < size; i++) {
+  for (i = 0; i < count; i++) {
     result[i] = tasks[start + i];       
   }
+  return result;
+}
 
-  return (void*) result;
+/* We need an other function that is taking one parameter. ThreadSort just calls msort */
+void *threadSort(void *args) {
+	data* data = args;
+	msort(data->tasks, data->count);
+	return;
 }
 
 /* Merge the splitted arays, namely tasksleft and tasksright, and put the result in tasks. */
@@ -63,42 +62,33 @@ void msort(task_t** tasks, int count){
   if (count <= 1){
     return;	
   }
-
-  // Divide input list length in two parts
-  int size_left = count / 2;
-  int size_right = count - size_left;
-	
-  // Make sublist with these sizes
+  
+  //create data struct for left array
   data* data_l;
   data_l = malloc(sizeof(data));
-  data_l->tasks = tasks;
-  data_l->start = 0;
-  data_l->size = size_left;
-
-  pthread_t merge_sort_l;  
-  pthread_create(&merge_sort_l, NULL, splitTasks, data_l);
-
+  
+  //create data struct for right array
   data* data_r;
-  data_r = malloc(sizeof(data));
-  data_r->tasks = tasks;
-  data_r->start = size_left;
-  data_r->size = size_right;
+  data_l = malloc(sizeof(data));
 
-  pthread_t merge_sort_r;  
-  pthread_create(&merge_sort_r, NULL, splitTasks, data_r);
-
-  // Wait for the threads to complete and capture the results
-  void* ret = NULL;
-
-  pthread_join(merge_sort_l, &ret);
-  task_t** left = (task_t**)ret;
-  pthread_join(merge_sort_r, &ret);
-  task_t** right = (task_t**)ret;
-
-  // Sort these sublists (with recursion)
-  msort(left, size_left);
-  msort(right, size_right);
+  // Divide input list length in two parts
+  data_l->count = count / 2;
+  data_r->count = count - data_l->count;
+  
+  // Make sublist with these sizes
+  data_l->tasks = splitTasks(tasks, 0, data_l->count);
+  data_r->tasks = splitTasks(tasks, data_l->count, data_r->count);
+  
+  //call msort via threadSort in a recursive way on data_l
+  pthread_t merge_sort_l;  
+  pthread_create(&merge_sort_l, NULL, threadSort, data_l);
+  
+  //while merge_sort_l is running, sort the right array in the current thread
+  threadSort(data_r);
+	
+  //we cannot merge before the other thread is done
+  pthread_join(merge_sort_l, NULL);
 	
   // Merge the sorted sublists together
-  merge(tasks, left, size_left, right, size_right);
+  merge(tasks, data_l->tasks, data_l->count, data_r->tasks, data_r->count);
 }
