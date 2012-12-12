@@ -1,6 +1,7 @@
 #include "as1_t2.h"
 #include <stdlib.h>
 
+/* Copy a part of an array to an new array, beginning with start and ending with start + count - 1. */
 task_t** splitTasks(task_t** tasks, int start, int count){  
   int i;
 
@@ -15,6 +16,7 @@ task_t** splitTasks(task_t** tasks, int start, int count){
   return result;
 }
 
+/* Merge the splitted arays, namely tasksleft and tasksright, and put the result in tasks. */
 void merge(task_t** tasks, task_t** tasksleft, int size_left,task_t** tasksright, int size_right){
   // Initialize index pointers for tasks, tasksleft and tasksright
   int p, p1, p2;
@@ -41,6 +43,7 @@ void merge(task_t** tasks, task_t** tasksleft, int size_left,task_t** tasksright
   }        
 }
 
+/* Recursive way to do mergesort on tasks with length count. */
 void msort(task_t** tasks, int count){
   // Base case: 0 or 1 element are already 'sorted'
   if(count<=1){
