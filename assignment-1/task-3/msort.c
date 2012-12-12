@@ -30,6 +30,7 @@ void *splitTasks(void *args) {
   return (void*) result;
 }
 
+/* Merge the splitted arays, namely tasksleft and tasksright, and put the result in tasks. */
 void merge(task_t** tasks, task_t** tasksleft, int size_left,task_t** tasksright, int size_right){
   // Initialize index pointers for tasks, tasksleft and tasksright
   int p, p1, p2;
@@ -56,6 +57,7 @@ void merge(task_t** tasks, task_t** tasksleft, int size_left,task_t** tasksright
   }        
 }
 
+/* Recursive way to do mergesort on tasks with length count with the use of mutiple threads. */
 void msort(task_t** tasks, int count){
   // Base case: 0 or 1 element are already 'sorted'
   if (count <= 1){
