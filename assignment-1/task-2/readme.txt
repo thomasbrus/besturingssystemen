@@ -31,16 +31,13 @@ Contents
 ===================================================================================================
 [2]	How does the program work?
 ===================================================================================================
-	The function to be used is "void msort(task_t** tasks, int count)". This function does
-	mergesort in-place on tasks with length count in a recursive manner. The base case is the case
-	that count <= 1. Then, there is only one element so the array is already sorted. Else, tasks
-	will be divided in two arrays, namely left and right with length size_left and size_right.
-	This will be done by calling "task_t** splitTasks(task_t** tasks, int start, int count)" two
-	times, which copies a part (between start and start + count) of tasks and returns it.
-	
-	After splitting tasks in two arrays, msort will be called on them. In this way, tasks will be
-	split until the arrays are of length one. Then, the recursion will be unfold be merging the
-	arrays. At this time, the actual sorting is done. "void merge(task_t** tasks, task_t**
-	tasksleft, int size_left,task_t** tasksright, int size_right)" merges tasksleft and tasksright
-	and puts the result in tasks. Eventually, every array is merged in tasks and the sorting has
-	been completed.
+	The function to be used is msort. This function does mergesort in-place on tasks with some length
+	in a recursive manner. The base case is the case that count <= 1, then there is only one element,
+	so the array is already sorted. Else, tasks will be (virtually, since we do in fact work on the
+	the array directly) divided in two arrays, namely a left and right part. These can be of non
+	equal lengths, if the size is an odd number.
+	After determining the splitting point for both tasks, msort will be called on them. In this way,
+	tasks will be split until the arrays are of length one. Then, the recursion will be unfold by
+	merging the virtual arrays in a smart way. At this time, the actual sorting is done. 'merge'
+	merges left and right parts by copying tasks and then replacing tasks with the sorted result.
+	Eventually, every part is merged in tasks and the sorting has been completed.

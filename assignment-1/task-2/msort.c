@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-/* Merge the splitted arays, namely tasksleft and tasksright, and put the result in tasks. */
+/* Merge the splitted arrays, by replacing tasks */
 void merge(task_t** tasks, int size_left, int size_right) {
   task_t** taskscopy;
   taskscopy = malloc(sizeof(task_t) * (size_left + size_right));

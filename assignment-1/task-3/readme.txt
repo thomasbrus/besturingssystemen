@@ -23,23 +23,21 @@ Contents
 	msort.c. First, we need to compile the program. Navigate to the source files with the terminal
 	in a UNIX environment with gcc (we used the Ubuntu image) and enter the following command:
 	
-	gcc as1_t2.c msort.c -lpthread
+	$ gcc as1_t2.c msort.c -lpthread
 	
 	This command compiles as1_t2.c, with the ability to refer to functions of msort.c. Also, we add
 	-lpthread because this version of msort uses threads. To run it, we use the following command:
 	
-	./a.out
+	$ ./a.out
 	
 ===================================================================================================
 [2]	How does the program work?
 ===================================================================================================
-	This program is almost the same as msort.c in task 2. The only difference is the implementation
-	of the function , spliTasks and the use of an function call thread_sort.
+	This program is almost the same as msort.c in task 2, however it is now thread-friendly build.
 	
-	When msort is called, the following will be:
-	*   define an instantiation of the struct "data"
-	*	allocate memory for the data struct
-	*	initialize the values of the data struct
-	*	create a new thread and let it do thread_sort on the data struct
-	
-	???
+	This means we have changed the following:
+	* structs are used to pass more arguments to the threaded (thus 'merge') method, since we can
+	  only pass one argument to a thread
+	* to limit the amount of threads created, a counter is updated every time one is created or
+	  destroyed and if those limits are reached or it is for some other reason not possible to create
+	  a thread we call the method sequentially
