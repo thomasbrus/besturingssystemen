@@ -1,4 +1,5 @@
 #include "as1_t2.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -9,8 +10,8 @@ void merge(task_t** tasks, int size_left, int size_right) {
 
   // Check if allocation was successful
   if(taskscopy == NULL) {
-    printf("Out of memory.";)
-    exit(EXIT_FAILURE);
+    printf("Out of memory.");
+    exit(-1);
   }
 
   // Create a copy of the tasks
