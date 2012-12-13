@@ -29,10 +29,12 @@ void *calculate(void *args) {
   // Continue while max iterations and max time have not been reached
   while ((i < thread_data->max_iterations) && (time_elapsed < thread_data->max_time)) {
     // Lock while calculating pi
-    pthread_mutex_lock(&(thread_data->lock));
+    if (pthread_mutex_lock(&(thread_data->lock))!=0)
+	printf("error locking thread_data->lock");
     // Leibniz formula
     thread_data->pi += (pow(-1, i) / (2 * i + 1));
-    pthread_mutex_unlock(&(thread_data->lock));
+    if (pthread_mutex_unlock(&(thread_data->lock))!=0)
+	printf("error unlocking thread_data->lock");
 
     // Calculate the time difference in microseconds
     gettimeofday(&current_time, NULL);    
@@ -82,13 +84,20 @@ int main(int argc, char* argv[]) {
     usleep(100000);
 
     // Lock for reading pi
-    pthread_mutex_lock(&(thread_data->lock));
+    if(pthread_mutex_lock(&(thread_data->lock))!=0){
+	printf("error locking thread_data->lock");
+	return -1;}
     printf("The value of π ≈ %.40Le\n", thread_data->pi * 4); // Leibniz
-    pthread_mutex_unlock(&(thread_data->lock));
+    if(pthread_mutex_unlock(&(thread_data->lock))!=0){
+	printf("error unlocking thread_data->lock");
+	return -1;}
   }
 
   // Join the thread, in this way we wait for the child process to exit
-  pthread_join(pi_thread, NULL);
+  if(pthread_join(pi_thread, NULL)!=0){
+	printf("error joining pi_thread");
+	return -1;
+  }
 
   if (thread_data->done == MAX_TIME_REACHED) {
     printf("Max time reached\n");
