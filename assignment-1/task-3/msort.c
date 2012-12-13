@@ -11,6 +11,8 @@ typedef struct {
 void *threadSort(void *args) {
   data* data = args;
   msort(data->tasks, data->count);
+
+  return NULL;
 }
 
 /* Merge the splitted arays, namely tasksleft and tasksright, and put the result in tasks. */
@@ -20,7 +22,7 @@ void merge(task_t** tasks, int size_left, int size_right) {
 
   // Check if allocation was successful
   if(taskscopy == NULL) {
-    printf("Out of memory.");
+    printf("Out of memory.\n");
     exit(EXIT_FAILURE);
   }
 
@@ -58,7 +60,7 @@ void merge(task_t** tasks, int size_left, int size_right) {
 }
 
 int counter = 1;
-int max_threads = 4;
+int max_threads = 2;
 
 /* Recursive way to do mergesort on tasks with length count with the use of mutiple threads. */
 void msort(task_t** tasks, int count) {
@@ -70,12 +72,18 @@ void msort(task_t** tasks, int count) {
   //create data struct for left array
   data* data_l;
   data_l = malloc(sizeof(data));
+  if (data_l == NULL) {
+    printf("Out of memory.\n");
+  }
   data_l->tasks = tasks;
   
-  //create data struct for right array
+  // Create data struct for right array
   data* data_r;
   data_r = malloc(sizeof(data));
-  
+  if (data_r == NULL) {
+    printf("Out of memory.\n");
+  }
+
   // Divide input list length in two parts
   data_l->count = count / 2;
   data_r->count = count - data_l->count;
@@ -83,24 +91,24 @@ void msort(task_t** tasks, int count) {
   data_r->tasks = tasks + data_l->count;
   
   pthread_t merge_sort_l;
-  if (counter < max_threads && pthread_create(&merge_sort_l, NULL, threadSort, data_l) == 0){
-    counter ++;
-    //call msort via threadSort in a recursive way on data_l
+  if (counter < max_threads && pthread_create(&merge_sort_l, NULL, threadSort, data_l) == 0) {
+    counter++;
+    // Call msort via threadSort in a recursive way on data_l
     threadSort(data_r);
-	//we cannot merge before the other thread is done
+	  // We cannot merge before the other thread is done
     if (pthread_join(merge_sort_l, NULL) != 0){
-	  printf("error joining thread");
+	    printf("Error joining thread");
       exit(-1);
-	}
-	counter --;
+	  }
+	  counter--;
   } else {
     threadSort(data_l);
-	threadSort(data_r);
+	  threadSort(data_r);
   }
-
-  free(data_l);
-  free(data_r);
   
   // Merge the sorted sublists together
   merge(tasks, data_l->count, data_r->count);
+
+  free(data_l);
+  free(data_r);
 }
