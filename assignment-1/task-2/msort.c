@@ -11,7 +11,7 @@ void merge(task_t** tasks, int size_left, int size_right) {
   // Check if allocation was successful
   if(taskscopy == NULL) {
     printf("Out of memory.");
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 
   // Create a copy of the tasks
