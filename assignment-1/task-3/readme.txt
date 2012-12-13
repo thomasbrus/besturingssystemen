@@ -12,8 +12,8 @@ ______               _                                           _
 ===================================================================================================
 Contents
 ===================================================================================================
-[1]   How do we run it?
-[2]   How does the program work?
+[1] How do we run it?
+[2] How does the program work?
 
 ===================================================================================================
 [1] How do we run it?
@@ -23,7 +23,7 @@ Contents
   msort.c. First, we need to compile the program. Navigate to the source files with the terminal
   in a UNIX environment with gcc (we used the Ubuntu image) and enter the following command:
   
-  $ gcc as1_t2.c msort.c -lpthread
+  $ gcc as1_t2.c msort.c -lpthread -Wall
   
   This command compiles as1_t2.c, with the ability to refer to functions of msort.c. Also, we add
   -lpthread because this version of msort uses threads. To run it, we use the following command:
