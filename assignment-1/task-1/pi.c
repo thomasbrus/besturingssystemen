@@ -29,12 +29,14 @@ void *calculate(void *args) {
   // Continue while max iterations and max time have not been reached
   while ((i < thread_data->max_iterations) && (time_elapsed < thread_data->max_time)) {
     // Lock while calculating pi
-    if (pthread_mutex_lock(&(thread_data->lock))!=0)
+    if (pthread_mutex_lock(&(thread_data->lock))!=0){
 	printf("error locking thread_data->lock");
+	exit(-1);}
     // Leibniz formula
     thread_data->pi += (pow(-1, i) / (2 * i + 1));
-    if (pthread_mutex_unlock(&(thread_data->lock))!=0)
+    if (pthread_mutex_unlock(&(thread_data->lock))!=0){
 	printf("error unlocking thread_data->lock");
+	exit(-1);}
 
     // Calculate the time difference in microseconds
     gettimeofday(&current_time, NULL);    
