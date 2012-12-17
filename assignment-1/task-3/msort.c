@@ -83,6 +83,8 @@ void msort(task_t** tasks, int count) {
   data_r = malloc(sizeof(data));
   if (data_r == NULL) {
     printf("Out of memory.\n");
+
+    free(data_l);
     exit(EXIT_FAILURE);
   }
 
@@ -91,6 +93,7 @@ void msort(task_t** tasks, int count) {
   data_r->count = count - data_l->count;
 
   data_l->tasks = tasks;
+
   // Move pointer a half length ahead
   data_r->tasks = tasks + data_l->count;
   
@@ -107,10 +110,12 @@ void msort(task_t** tasks, int count) {
 	  // We cannot merge before the other thread is done
     if (pthread_join(merge_sort_l, NULL) != 0) {
 	    printf("Error joining thread.\n");
-      exit(-1);
+      exit(EXIT_FAILURE);
 	  }
+
 	  thread_counter--;
   } else {
+    // if it is impossible to create a thread, run it sequentially
     threadSort(data_l);
 	  threadSort(data_r);
   }
