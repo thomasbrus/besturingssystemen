@@ -1,17 +1,27 @@
 #include <minix/drivers.h>
 #include <minix/vtreefs.h>
 #include <sys/stat.h>
-#include <time.h>
 #include <assert.h>
 
-static void my_init_hook(void)
+static void initialize(void)
 {       
         /* This hook will be called once, after VTreeFS has initialized.
          */
-        struct inode_stat file_stat;
-        struct inode *inode;
+        struct inode_stat dir_stat, file_stat;
+        struct inode *dir, *file;
 
-        /* We create one regular file in the root directory. The file is
+        /* Fill in the details to be used for the as3 inode. It will be a
+         * directory, readable and searchable by anyone, and owned by root.
+         */
+        dir_stat.mode = S_IFDIR | 0555;
+        dir_stat.uid = 0;
+        dir_stat.gid = 0;
+        dir_stat.size = 0;
+        dir_stat.dev = NO_DEV;
+
+        dir = add_inode(get_root_inode(), "as3", NO_INDEX, &dir_stat, 0, (cbdata_t) 2);
+
+        /* We create one regular file in the as3 directory. The file is
          * readable by everyone, and owned by root. Its size as returned by for
          * example stat() will be zero, but that does not mean it is empty.
          * For files with dynamically generated content, the file size is
@@ -27,34 +37,28 @@ static void my_init_hook(void)
          * index number. Its callback data value is set to 1, allowing it to be
          * identified with this number later.
          */
-        inode = add_inode(get_root_inode(), "test", NO_INDEX, &file_stat, 0,
-                (cbdata_t) 1);
+        file = add_inode(dir, "t1", NO_INDEX, &file_stat, 0, (cbdata_t) 1);
 
-        assert(inode != NULL);
+        assert(file != NULL);
 }
 
-static int my_read_hook(struct inode *inode, off_t offset, char **ptr,
+static int reader(struct inode *inode, off_t offset, char **ptr,
         size_t *len, cbdata_t cbdata)
 {
         /* This hook will be called every time a regular file is read. We use
-         * it to dyanmically generate the contents of our file.
+         * it to dynamically generate the contents of our file.
          */
-        static char data[26];
+        static char data[31];
         const char *str;
-        time_t now;
 
         /* We have only a single file. With more files, cbdata may help
          * distinguishing between them.
          */
         assert((int) cbdata == 1);
 
-        /* Generate the contents of the file into the 'data' buffer. We could
-         * use the return value of ctime() directly, but that would make for a
-         * lousy example.
+        /* Generate the contents of the file into the 'data' buffer.
          */
-        time(&now);
-
-        str = ctime(&now);
+        str = "Hello world! Group 9 was here.";
 
         strcpy(data, str);
 
@@ -79,12 +83,12 @@ static int my_read_hook(struct inode *inode, off_t offset, char **ptr,
 }
 
 /* The table with callback hooks. */
-struct fs_hooks my_hooks = {
-        my_init_hook,
+struct fs_hooks hooks = {
+        initialize,
         NULL, /* cleanup_hook */
         NULL, /* lookup_hook */
         NULL, /* getdents_hook */
-        my_read_hook,
+        reader,
         NULL, /* rdlink_hook */
         NULL  /* message_hook */
 };
@@ -102,10 +106,9 @@ int main(void)
         root_stat.size = 0;
         root_stat.dev = NO_DEV;
 
-        /* Now start VTreeFS. Preallocate 10 inodes, which is more than we'll
-         * need for this example. No indexed entries are used.
+        /* Now start VTreeFS. Preallocate 3 inodes.
          */
-        start_vtreefs(&my_hooks, 10, &root_stat, 0);
+        start_vtreefs(&hooks, 3, &root_stat, 0);
 
         /* The call above never returns. This just keeps the compiler happy. */
         return 0;
