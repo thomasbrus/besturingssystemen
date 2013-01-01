@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<rss version="2.0">
+  <channel>
+    <title>UT Nieuws</title>
+    <link>http://www.utwente.nl/organisatie/nieuws</link>
+    <description>Nieuwsberichten van de Universiteit Twente, centrale webredactie</description>
+    <language>nl-NL</language>
+    <item>
+      <title>UT'er wint scriptieprijs Berenschot</title>
+      <link>http://www.utwente.nl/nieuws/uter-wint-scriptieprijs-berenschot</link>
+      <description>Arjan Tijmes, voormalig student Business Administration aan de Universiteit Twente, is vandaag uitgeroepen tot winnaar van de Scriptieprijs 2010 die Berenschot uitreikt voor de meest opmerkelijke scriptie van het jaar. Aan de prijs is een geldbedrag van 1.500 euro verbonden.</description>
+      <pubDate>Wed, 15 Dec 2010 12:00:00 +0100</pubDate>
+      <guid>/nieuws/uter-wint-scriptieprijs-berenschot</guid>
+    </item>
+    <item>
+      <title>Sluitingsdagen UT tijdens de kerstvakantie</title>
+      <link>http://www.utwente.nl/nieuws/sluitingsdagen-ut</link>
+      <description>Alle gebouwen van de Universiteit Twente zullen vrijdag 24 december na 16.00 t/m zondag 2 januari 2011 gesloten zijn. </description>
+      <pubDate>Wed, 08 Dec 2010 12:00:00 +0100</pubDate>
+      <guid>/nieuws/sluitingsdagen-ut</guid>
+    </item>
+    <item>
+      <title>Voorverkoop Campuspop gestart</title>
+      <link>http://www.utwente.nl/nieuws/voorverkoop-campuspop-gestart</link>
+      <description>Dit weekend is de kaartverkoop voor Campuspop 2011 gestart. Op het muziekfestival komen weer grote namen dit jaar, waaronder Anouk, Candy Dulfer, Waylon en Caro Emerald. </description>
+      <pubDate>Mon, 06 Dec 2010 12:00:00 +0100</pubDate>
+      <guid>/nieuws/voorverkoop-campuspop-gestart</guid>
+    </item>
+  </channel>
+</rss>
