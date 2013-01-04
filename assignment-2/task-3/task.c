@@ -18,6 +18,7 @@ void *task_alloc() {
   void *result;
   counter++;
 
+  // On the first, ask for a block of size MEMORY_BLOCK_SIZE
   if (!memory_block_start) {
     memory_block_start = (char *)_sbrk(MEMORY_BLOCK_SIZE);
 
@@ -30,6 +31,7 @@ void *task_alloc() {
     memory_block_end = memory_block_start + MEMORY_BLOCK_SIZE;
   }
 
+  // We have reached the end of the memory block, so increase it
   if (counter % (MEMORY_BLOCK_SIZE / sizeof(task_t)) == 0) {
 
     empty_slot_pointer = _sbrk(MEMORY_BLOCK_SIZE);
