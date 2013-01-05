@@ -53,6 +53,7 @@ void *task_alloc() {
       }
 
     } else {
+
       /* In case the linked list is empty, just allocate the slot after the
          last allocated slot */
       result = last_allocated_slot + sizeof(task_t);
@@ -79,6 +80,7 @@ void *task_alloc() {
 }
 
 void task_free(void *freed_task_pointer) {
+
   /* Check if this pointer is valid */
   if (freed_task_pointer == NULL) return;
   if ((char *)freed_task_pointer < memory_block_start) return;
@@ -88,6 +90,11 @@ void task_free(void *freed_task_pointer) {
   if (free_slots.last) {
     /* Update the pointer of the current last slot */
     *(int *)(free_slots.last) = (int)freed_task_pointer;
+    
+    /* Empty this slot */
+    *(int *)(freed_task_pointer) = 0;
+
+    /* The new last slot is the slot we just freed */
     free_slots.last = freed_task_pointer;
 
   } else {
@@ -144,6 +151,6 @@ void runTests(void) {
 
 }
 
-/* int main(int argc, char *argv[]) {
+/*int main(int argc, char *argv[]) {
   runTests();
-} */
+}*/
