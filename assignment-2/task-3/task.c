@@ -86,14 +86,20 @@ void task_free(void *freed_task_pointer) {
   linked-list op de laatste plaats toegevoegd, waarbij
   deze voormalig-laatste wordt geupdatet met een
   verwijzing naar dit nieuwe block */
-  *(int *)slots.last = (int)freed_task_pointer;
-
-  /* zelf verwijst 
-    hij daarna naar niets */
-  *(int *)freed_task_pointer = *(int *)0;
 
   /* wordt deze aan de linked-list op de laatste plaats toegevoegd, */
-  slots.last = freed_task_pointer;
+  if (slots.last) {
+    slots.last = freed_task_pointer;  
+    *(int *)slots.last = (int)freed_task_pointer;
+
+  } else {
+    slots.first = freed_task_pointer;
+    slots.last = freed_task_pointer;
+  }
+
+  /* zelf verwijst hij daarna naar niets */
+  *(int *)freed_task_pointer = *(int *)0;
+
 }
 
 int main(int argc, char *argv[]) {
