@@ -13,8 +13,19 @@ char *memory_block_end;
 
 struct linked_list {
   char *first;
+  char *last;
   char *current;
 } slots;
+
+
+/* we houden bij
+* een linked-list voor vrijgegeven blokken
+* het laatste voor-het-eerst-uitgegeven block
+* de grenzen van het geheugen
+alloceren
+- het eerste element van de linked-list wort teruggegeven, en de index wordt een element voorwaards geschoven
+- is de linked-list op (je komt op een nil-pointer), dan wordt vanaf het laatst nieuw-vrijgegeven element een nieuw laatst nieuw-vrijgegeven block gegeven
+- is de toegewezen ruimte daarbij op, dan wordt er extra geheugenruimte aangevraagd */
 
 void *task_alloc() {
   void *result;
@@ -59,19 +70,30 @@ void *task_alloc() {
   return result;
 }
 
-void task_free(void *pointer) {  
-  if (pointer == NULL) return;
-  if ((char *)pointer < memory_block_start || (char *)pointer > memory_block_end) return;
 
-  /* Insert this pointer into the linked list */
-  *(int *)(pointer) = (int)(slots.first);
-  *(int *)(slots.first) = (int)pointer;
+/*  vrijgeven
+    - als een block wordt vrijgegeven wordt deze aan de
+    linked-list op de laatste plaats toegevoegd, waarbij
+    deze voormalig-laatste wordt geupdatet met een
+    verwijzing naar dit nieuwe block - zelf verwijst 
+    hij daarna naar niets */
 
-  /* Update the first free slot pointer if necessary */
-  if ((int)pointer < (int)slots.first) {
-    slots.first = pointer;
-  }
+void task_free(void *freed_task_pointer) {
+  if (freed_task_pointer == NULL) return;
+  if ((char *)freed_task_pointer < memory_block_start || (char *)freed_task_pointer > memory_block_end) return;
 
+  /* - als een block wordt vrijgegeven wordt deze aan de
+  linked-list op de laatste plaats toegevoegd, waarbij
+  deze voormalig-laatste wordt geupdatet met een
+  verwijzing naar dit nieuwe block */
+  *(int *)slots.last = (int)freed_task_pointer;
+
+  /* zelf verwijst 
+    hij daarna naar niets */
+  *(int *)freed_task_pointer = *(int *)0;
+
+  /* wordt deze aan de linked-list op de laatste plaats toegevoegd, */
+  slots.last = freed_task_pointer;
 }
 
 int main(int argc, char *argv[]) {
