@@ -19,20 +19,12 @@ struct linked_list {
   char *last;
 } free_slots;
 
-/* we houden bij
-* een linked-list voor vrijgegeven blokken
-* het laatste voor-het-eerst-uitgegeven block
-* de grenzen van het geheugen
-alloceren
-- het eerste element van de linked-list wort teruggegeven,
-  en de index wordt een element voorwaards geschoven
-- is de linked-list op (je komt op een nil-pointer), dan wordt vanaf het laatst nieuw-vrijgegeven element een nieuw laatst nieuw-vrijgegeven block gegeven
-- is de toegewezen ruimte daarbij op, dan wordt er extra geheugenruimte aangevraagd */
 
 void *task_alloc() {
   char *result;
 
   if (first_run) {
+    /* Allocate MEMORY_BLOCK_SIZE of memory */
     memory_block_start = _sbrk(MEMORY_BLOCK_SIZE);
     memory_block_end = memory_block_start + MEMORY_BLOCK_SIZE;
 
@@ -41,59 +33,63 @@ void *task_alloc() {
       return;      
     }
 
+    /* Return a pointer to the beginning of this block */
     result = memory_block_start;
     first_run = 0;
 
   } else {
+
+    /* Check if the linked list is non-empty */
     if (free_slots.first) {
       int next = *(int *)free_slots.first;
       result = free_slots.first;
 
+      /* Update first if this slot contains a pointer to the next free slot,
+         otherwise make this linked list empty */
       if (next == 0) {
         free_slots.first = NULL;
       } else {
-        *free_slots.first = next;
+        *free_slots.first = next;        
       }
 
     } else {
-      result = last_allocated_slot + sizeof(task_t);  
+      /* In case the linked list is empty, just allocate the slot after the
+         last allocated slot */
+      result = last_allocated_slot + sizeof(task_t);
+
+      /* The last freed slot doesn't exist anymore */
+      free_slots.last = NULL;
     }
 
   }
 
+  /* Update the last allocated slot */
   if (result > last_allocated_slot) last_allocated_slot = result;
 
   return result;
 }
 
-/*  vrijgeven
-    - als een block wordt vrijgegeven wordt deze aan de
-    linked-list op de laatste plaats toegevoegd, waarbij
-    deze voormalig-laatste wordt geupdatet met een
-    verwijzing naar dit nieuwe block - zelf verwijst 
-    hij daarna naar niets */
-
 void task_free(void *freed_task_pointer) {
+  /* Check if this pointer is valid */
   if (freed_task_pointer == NULL) return;
   if ((char *)freed_task_pointer < memory_block_start) return;
   if ((char *)freed_task_pointer > memory_block_end) return;
 
-  /* - als een block wordt vrijgegeven wordt deze aan de
-  linked-list op de laatste plaats toegevoegd, waarbij
-  deze voormalig-laatste wordt geupdatet met een
-  verwijzing naar dit nieuwe block */
-
-  /* wordt deze aan de linked-list op de laatste plaats toegevoegd, */
+  /* ... */
   if (free_slots.last) {
+
+    /* ... */
     *(int *)free_slots.last = (int)freed_task_pointer;
     free_slots.last = freed_task_pointer;  
 
   } else {
+
+    /* ... */
     free_slots.first = free_slots.last = freed_task_pointer;
   }
 
-  /* zelf verwijst hij daarna naar niets */
-  *(int *)freed_task_pointer = *(int *)0;
+  /* This slot is the last one, so it doesn't have a next free slot */
+  freed_task_pointer = NULL;
 }
 
 int main(int argc, char *argv[]) {
@@ -103,36 +99,41 @@ int main(int argc, char *argv[]) {
   void *task_d;
   void *task_e;
   void *task_f;
-
+  void *task_g;
+  void *task_h;
+  void *task_i;
+  void *task_j;
+  
   /* Allocate 4 task_t's */
   task_a = task_alloc();
   assert(0 < (int)task_a);
-
+  
   task_b = task_alloc();
   assert((int)task_a < (int)task_b);
-
+  
   task_c = task_alloc();
   assert((int)task_b < (int)task_c);
-
+  
   task_d = task_alloc();
   assert((int)task_c < (int)task_d);
-
+  
   /* Free task_b */
-  task_free(task_b); 
-
+  task_free(task_b);
+  
   /* Allocate task_e */
   task_e = task_alloc();
-
-  printf("task_b = %d\n", task_b);
-  printf("task_e = %d\n", task_e);
-
-  assert(task_e == task_b);  
-
-  /* Allocate task_f 
+  assert(task_e == task_b);
+  
+  /* Allocate task_f */
   task_f = task_alloc();
-
-  printf("task_f = %d\n", task_f);
-
-  assert((int)task_d < (int)task_f); */
+  assert((int)task_d < (int)task_f);
+  
+  /* Free task f */
+  task_free(task_f);
+  
+  /* Allocate task g */
+  task_g = task_alloc();
+  
+  assert(task_g == task_f);
 
 }
