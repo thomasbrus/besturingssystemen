@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <unistd.h>
 
-#define MEMORY_BLOCK_SIZE 1024
+#define MEMORY_BLOCK_SIZE 1024 * 1024
 
 extern void *_sbrk(int);
 
@@ -49,18 +49,16 @@ void *task_alloc() {
         free_slots.first = (char *)next;
 
       } else {
-        free_slots.first = NULL; 
+        free_slots.first = NULL;
       }
 
     } else {
-
       /* In case the linked list is empty, just allocate the slot after the
          last allocated slot */
       result = last_allocated_slot + sizeof(task_t);
 
       /* Increase the size of this memory block if necessary */
       if (result + sizeof(task_t) >= memory_block_end) {
-
         if (_sbrk(MEMORY_BLOCK_SIZE) == (char *)-1) {
           return NULL;
         }
@@ -80,7 +78,6 @@ void *task_alloc() {
 }
 
 void task_free(void *freed_task_pointer) {
-
   /* Check if this pointer is valid */
   if (freed_task_pointer == NULL) return;
   if ((char *)freed_task_pointer < memory_block_start) return;
@@ -91,9 +88,6 @@ void task_free(void *freed_task_pointer) {
     /* Update the pointer of the current last slot */
     *(int *)(free_slots.last) = (int)freed_task_pointer;
     
-    /* Empty this slot */
-    *(int *)(freed_task_pointer) = 0;
-
     /* The new last slot is the slot we just freed */
     free_slots.last = freed_task_pointer;
 
@@ -102,6 +96,9 @@ void task_free(void *freed_task_pointer) {
     /* Initialize empty free_slots */
     free_slots.first = free_slots.last = freed_task_pointer;
   }
+
+  /* Empty this slot */
+  *(int *)(freed_task_pointer) = 0;
 
   /* This slot is the last one, so it doesn't have a next free slot */
   freed_task_pointer = NULL;
@@ -151,6 +148,6 @@ void runTests(void) {
 
 }
 
-/*int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
   runTests();
-}*/
+}
