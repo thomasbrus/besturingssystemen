@@ -46,10 +46,12 @@ void *task_alloc() {
 
       /* Update first if this slot contains a pointer to the next free slot,
          otherwise make this linked list empty */
-      if (next == 0) {
-        free_slots.first = NULL;
+      if (next) {
+        free_slots.first = (char *)next;
+
       } else {
-        *free_slots.first = next;        
+        free_slots.first = NULL;
+        
       }
 
     } else {
@@ -75,16 +77,15 @@ void task_free(void *freed_task_pointer) {
   if ((char *)freed_task_pointer < memory_block_start) return;
   if ((char *)freed_task_pointer > memory_block_end) return;
 
-  /* ... */
+  /* Check if linked list is non-empty */
   if (free_slots.last) {
-
-    /* ... */
-    *(int *)free_slots.last = (int)freed_task_pointer;
-    free_slots.last = freed_task_pointer;  
+    /* Update the pointer of the current last slot */
+    *(int *)(free_slots.last) = (int)freed_task_pointer;
+    free_slots.last = freed_task_pointer;
 
   } else {
 
-    /* ... */
+    /* Initialize empty free_slots */
     free_slots.first = free_slots.last = freed_task_pointer;
   }
 
@@ -100,40 +101,38 @@ int main(int argc, char *argv[]) {
   void *task_e;
   void *task_f;
   void *task_g;
-  void *task_h;
-  void *task_i;
-  void *task_j;
   
   /* Allocate 4 task_t's */
   task_a = task_alloc();
   assert(0 < (int)task_a);
-  
   task_b = task_alloc();
   assert((int)task_a < (int)task_b);
-  
   task_c = task_alloc();
   assert((int)task_b < (int)task_c);
-  
   task_d = task_alloc();
   assert((int)task_c < (int)task_d);
   
-  /* Free task_b */
+  /* Free task a, b and c */
+  printf("task_a = %d\n", task_a);
+  task_free(task_a);
+
+  printf("task_b = %d\n", task_b);
   task_free(task_b);
-  
-  /* Allocate task_e */
+
+  printf("task_c = %d\n", task_c);
+  task_free(task_c);
+
+  /* Reallocate slot a, b and c */
   task_e = task_alloc();
-  assert(task_e == task_b);
-  
-  /* Allocate task_f */
+  printf("task_e = %d\n", task_e);
+  assert(task_e == task_a);
+
   task_f = task_alloc();
-  assert((int)task_d < (int)task_f);
-  
-  /* Free task f */
-  task_free(task_f);
-  
-  /* Allocate task g */
+  printf("task_f = %d\n", task_f);
+  assert(task_f == task_b);
+
   task_g = task_alloc();
-  
-  assert(task_g == task_f);
+  printf("task_g = %d\n", task_g);
+  assert(task_g == task_c);
 
 }
