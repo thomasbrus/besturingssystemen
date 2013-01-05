@@ -109,8 +109,11 @@ void runTests(void) {
   void *task_e;
   void *task_f;
   void *task_g;
-  
+
+  printf("Testing task_alloc and task_free\n");
+
   /* Allocate 4 task_t's */
+  printf("- Allocate 4 task_t's\n");
   task_a = task_alloc();
   assert(0 < (int)task_a);
   task_b = task_alloc();
@@ -120,31 +123,32 @@ void runTests(void) {
   task_d = task_alloc();
   assert((int)task_c < (int)task_d);
   
-  /* Free task a, b and c */
-  printf("task_a = %d\n", task_a);
+  /* Free task a, b and c (in order a, c, b) */
+  printf("- Free task a, b and c (in order a, c, b)\n");
   task_free(task_a);
-
-  printf("task_b = %d\n", task_b);
+  task_free(task_c);
   task_free(task_b);
 
-  printf("task_c = %d\n", task_c);
-  task_free(task_c);
-
   /* Reallocate slot a, b and c */
+  printf("- Reallocate slot a, b and c\n");
   task_e = task_alloc();
-  printf("task_e = %d\n", task_e);
   assert(task_e == task_a);
 
   task_f = task_alloc();
-  printf("task_f = %d\n", task_f);
-  assert(task_f == task_b);
+  assert(task_f == task_c);
 
   task_g = task_alloc();
-  printf("task_g = %d\n", task_g);
-  assert(task_g == task_c);
+  assert(task_g == task_b);
 
+  /* Free task g twice */
+  printf("- Free task g twice\n");
+  task_free(task_g);
+  task_free(task_g);
+
+  printf("All tests have succeeded.\n");
 }
-/*
-int main(int argc, char *argv[]) {
+
+/*int main(int argc, char *argv[]) {
   runTests();
-}*/
+}
+*/
