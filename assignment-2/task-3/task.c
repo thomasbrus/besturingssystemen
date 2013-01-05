@@ -29,8 +29,7 @@ void *task_alloc() {
     memory_block_end = memory_block_start + MEMORY_BLOCK_SIZE;
 
     if (memory_block_start == (char *)-1) {
-      printf("Couldn't allocate memory!\n");
-      return;      
+      return NULL;
     }
 
     /* Return a pointer to the beginning of this block */
@@ -50,8 +49,7 @@ void *task_alloc() {
         free_slots.first = (char *)next;
 
       } else {
-        free_slots.first = NULL;
-        
+        free_slots.first = NULL; 
       }
 
     } else {
@@ -59,7 +57,16 @@ void *task_alloc() {
          last allocated slot */
       result = last_allocated_slot + sizeof(task_t);
 
-      /* The last freed slot doesn't exist anymore */
+      /* Increase the size of this memory block if necessary */
+      if (result + sizeof(task_t) >= memory_block_end) {
+
+        if (_sbrk(MEMORY_BLOCK_SIZE) == (char *)-1) {
+          return NULL;
+        }
+        memory_block_end += MEMORY_BLOCK_SIZE;
+      }
+
+      /* The last freed slot doesn't exist anymore (?) */
       free_slots.last = NULL;
     }
 
@@ -93,7 +100,7 @@ void task_free(void *freed_task_pointer) {
   freed_task_pointer = NULL;
 }
 
-int main(int argc, char *argv[]) {
+void runTests(void) {
   void *task_a;
   void *task_b;
   void *task_c;
@@ -136,3 +143,7 @@ int main(int argc, char *argv[]) {
   assert(task_g == task_c);
 
 }
+
+/* int main(int argc, char *argv[]) {
+  runTests();
+} */
