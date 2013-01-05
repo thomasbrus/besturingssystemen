@@ -4,72 +4,67 @@
 #include <assert.h>
 #include <unistd.h>
 
-#define MEMORY_BLOCK_SIZE 20
+#define MEMORY_BLOCK_SIZE 1024
 
 extern void *_sbrk(int);
 
+int first_run = 1;
+
 char *memory_block_start;
 char *memory_block_end;
+char *last_allocated_slot = 0;
 
 struct linked_list {
   char *first;
   char *last;
-  char *current;
-} slots;
-
+} free_slots;
 
 /* we houden bij
 * een linked-list voor vrijgegeven blokken
 * het laatste voor-het-eerst-uitgegeven block
 * de grenzen van het geheugen
 alloceren
-- het eerste element van de linked-list wort teruggegeven, en de index wordt een element voorwaards geschoven
+- het eerste element van de linked-list wort teruggegeven,
+  en de index wordt een element voorwaards geschoven
 - is de linked-list op (je komt op een nil-pointer), dan wordt vanaf het laatst nieuw-vrijgegeven element een nieuw laatst nieuw-vrijgegeven block gegeven
 - is de toegewezen ruimte daarbij op, dan wordt er extra geheugenruimte aangevraagd */
 
 void *task_alloc() {
-  void *result;
+  char *result;
 
-  /* On the first run, or when the end of the linked list is reached */
-  if (!slots.first || *(int *)slots.first == 0) {
-    
-    /* Increase memory if necessary */
-    if (!memory_block_start || slots.first + sizeof(task_t) > memory_block_end) {
+  if (first_run) {
+    memory_block_start = _sbrk(MEMORY_BLOCK_SIZE);
+    memory_block_end = memory_block_start + MEMORY_BLOCK_SIZE;
 
-      /* Offset is the beginning of the memory block */
-      char *offset = _sbrk(MEMORY_BLOCK_SIZE);
-
-      if (offset == (char *) -1) {
-        printf("Couldn't allocate memory!\n");
-        return;
-      }
-
-      if (!memory_block_start) {
-        memory_block_start = offset;
-      }
-      
-      /* ... */
-      slots.first = offset;
-      memory_block_end = offset + MEMORY_BLOCK_SIZE;
+    if (memory_block_start == (char *)-1) {
+      printf("Couldn't allocate memory!\n");
+      return;      
     }
 
-    result = slots.first;
-    slots.first += sizeof(task_t);
+    result = memory_block_start;
+    first_run = 0;
 
   } else {
-    printf("Hello.\n");
+    if (free_slots.first) {
+      int next = *(int *)free_slots.first;
+      result = free_slots.first;
 
-    result = slots.first;
-    *slots.first = *(int *)(slots.first);
+      if (next == 0) {
+        free_slots.first = NULL;
+      } else {
+        *free_slots.first = next;
+      }
+
+    } else {
+      result = last_allocated_slot + sizeof(task_t);  
+    }
+
   }
 
-  /* Cleanup */
-
-  /* ... */
+  if (result > last_allocated_slot) last_allocated_slot = result;
 
   return result;
 }
-
 
 /*  vrijgeven
     - als een block wordt vrijgegeven wordt deze aan de
@@ -80,7 +75,8 @@ void *task_alloc() {
 
 void task_free(void *freed_task_pointer) {
   if (freed_task_pointer == NULL) return;
-  if ((char *)freed_task_pointer < memory_block_start || (char *)freed_task_pointer > memory_block_end) return;
+  if ((char *)freed_task_pointer < memory_block_start) return;
+  if ((char *)freed_task_pointer > memory_block_end) return;
 
   /* - als een block wordt vrijgegeven wordt deze aan de
   linked-list op de laatste plaats toegevoegd, waarbij
@@ -88,18 +84,16 @@ void task_free(void *freed_task_pointer) {
   verwijzing naar dit nieuwe block */
 
   /* wordt deze aan de linked-list op de laatste plaats toegevoegd, */
-  if (slots.last) {
-    slots.last = freed_task_pointer;  
-    *(int *)slots.last = (int)freed_task_pointer;
+  if (free_slots.last) {
+    *(int *)free_slots.last = (int)freed_task_pointer;
+    free_slots.last = freed_task_pointer;  
 
   } else {
-    slots.first = freed_task_pointer;
-    slots.last = freed_task_pointer;
+    free_slots.first = free_slots.last = freed_task_pointer;
   }
 
   /* zelf verwijst hij daarna naar niets */
   *(int *)freed_task_pointer = *(int *)0;
-
 }
 
 int main(int argc, char *argv[]) {
@@ -124,7 +118,7 @@ int main(int argc, char *argv[]) {
   assert((int)task_c < (int)task_d);
 
   /* Free task_b */
-  task_free(task_b);
+  task_free(task_b); 
 
   /* Allocate task_e */
   task_e = task_alloc();
@@ -132,13 +126,13 @@ int main(int argc, char *argv[]) {
   printf("task_b = %d\n", task_b);
   printf("task_e = %d\n", task_e);
 
-  assert(task_e == task_b);
+  assert(task_e == task_b);  
 
-  /* Allocate task_f */
+  /* Allocate task_f 
   task_f = task_alloc();
 
   printf("task_f = %d\n", task_f);
 
-  assert((int)task_d < (int)task_f); 
+  assert((int)task_d < (int)task_f); */
 
 }
