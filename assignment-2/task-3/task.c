@@ -99,9 +99,6 @@ void task_free(void *freed_task_pointer) {
 
   /* Empty this slot */
   *(int *)(freed_task_pointer) = 0;
-
-  /* This slot is the last one, so it doesn't have a next free slot */
-  freed_task_pointer = NULL;
 }
 
 void runTests(void) {
@@ -147,7 +144,7 @@ void runTests(void) {
   assert(task_g == task_c);
 
 }
-
+/*
 int main(int argc, char *argv[]) {
   runTests();
-}
+}*/
