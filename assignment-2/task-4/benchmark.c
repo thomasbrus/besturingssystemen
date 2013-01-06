@@ -23,20 +23,19 @@ void justATest (long useconds) {
 }
 
 long mallocBenchmark (int taskCount) {
+	task_t *tasks[taskCount];
 	time_t startTime;
 	time_t stopTime;
+	int i;
 
 	time(&startTime);
 
-	task_t *tasks[taskCount];
-
-	int i;
 	for (i = 0; i < taskCount; i++){
 		tasks[i] = malloc (sizeof (task_t));
 	}
 
 	for (i = 0; i < taskCount; i++) {
-		free (tasks (tasks[i]) );
+		free (tasks[i]);
 	}
 
 	time(&stopTime);
