@@ -24,7 +24,7 @@ to the start the start of the memory block will be returned as result of this fi
 ### Allocating tasks
 After the first call, each subsequent call will perform a few steps to find out which slot should be returned and
 whether the memory block should be increased. First we're checking whether the linked list is empty. If it is not empty,
-we differentiate between two cases. In either case we return `free_slots.first` as result.
+we differentiate between two cases. In either case `free_slots.first` is returned as result.
 
 The first case is that the free slot contains a pointer to the next free slot. We then point `free_slots.first` to
 this next slot. The second case is that this slot does not contain a pointer to a next free slot, which means this
@@ -33,7 +33,8 @@ is the last slot in the linked list. To denote we used the last slot and the lin
 
 It may also happen that `task_alloc` is called when the linked list is empty. In this case we should allocate a
 slot right after the the last allocated slot in this memory block. We keep track of this slot using the
-`last_allocated_slot` variable. (...)
+`last_allocated_slot` variable. If this new slot is beyond the end of the memory block, then more memory is requested,
+again using `_sbrk`.
 
 ### Freeing tasks
 First a few checks are performed on the pointer. The pointer should be in the memory block range and it should not be
