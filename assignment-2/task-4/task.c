@@ -8,7 +8,7 @@
 
 extern void *_sbrk(int);
 
-int initialized = 0;
+int first_run = 1;
 
 char *memory_block_start;
 char *memory_block_end;
@@ -23,7 +23,7 @@ struct linked_list {
 void *task_alloc() {
   char *result;
 
-  if (!initialized) {
+  if (first_run) {
     /* Allocate MEMORY_BLOCK_SIZE of memory */
     memory_block_start = _sbrk(MEMORY_BLOCK_SIZE);
     memory_block_end = memory_block_start + MEMORY_BLOCK_SIZE;
@@ -34,7 +34,7 @@ void *task_alloc() {
 
     /* Return a pointer to the beginning of this block */
     result = memory_block_start;
-    initialized = 1;
+    first_run = 0;
 
   } else {
 
@@ -68,6 +68,7 @@ void *task_alloc() {
       /* The last freed slot doesn't exist anymore (?) */
       free_slots.last = NULL;
     }
+
   }
 
   /* Update the last allocated slot */
