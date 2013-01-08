@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
 		printf("DECODING: %s\n", argv[i]);
 		n = be_decoden(buf, len);
 		if (n) {
-			be_dump(n);
+			printf("%s\n", n->type);
+			//be_dump(n);
 			be_free(n);
 		} else
 			printf("\tparsing failed!\n");

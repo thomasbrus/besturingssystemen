@@ -28,7 +28,7 @@
 
 #include <stdlib.h> /* malloc() realloc() free() strtoll() */
 #include <string.h> /* memset() */
-#define BE_DEBUG;
+//#define BE_DEBUG; 
 #include "bencode.h"
 
 static be_node *be_alloc(be_type type)
