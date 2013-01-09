@@ -9,6 +9,7 @@
 
 /*This method calculates the time elapsed given the startTime and stopTime as a timeval struct. This method return the time elapsed in microseconds as a long.*/
 long calculateTimeElapsed (struct timeval startTime, struct timeval stopTime){
+	/*In order to prevent long overflow, it first calculates the elapsed time seconds accurate. Then it adds the time in microseconds accurate.*/
 	return (stopTime.tv_sec - startTime.tv_sec) * 1000000 + (stopTime.tv_usec - startTime.tv_usec);
 }
 
