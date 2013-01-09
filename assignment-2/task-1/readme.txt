@@ -16,7 +16,7 @@ Contents
   the terminal in an UNIX environment with cc (we used the Minix image) and enter the following 
   command:
   
-  $ cc as2_t1.c task.c -Wall
+  $ cc as2_t1.c task.c
   
   This command compiles as2_t1.c, with the ability to refer to functions of task.c. 
   To run it, we use the following command:
