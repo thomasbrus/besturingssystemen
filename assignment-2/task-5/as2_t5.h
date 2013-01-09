@@ -1,5 +1,5 @@
-#ifndef _AS2_T3_H
-#define _AS2_T3_H
+#ifndef _AS2_T5_H
+#define _AS2_T5_H
 #define UNIT_TESTS
 
 
@@ -35,4 +35,4 @@ void testFreeUsedMemory(void);
 void testRandomFree(void);
 #endif /* UNIT_TESTS */
 
-#endif /* _AS2_T3_H */
+#endif /* _AS2_T5_H */

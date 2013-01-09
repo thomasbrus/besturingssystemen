@@ -1,4 +1,4 @@
-#include "as2_t3.h"
+#include "as2_t5.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,7 +16,7 @@ task_t* tasks[FAIR_TASK_COUNT];
 
 /** The test program */
 int main(int argc, char *argv[]){
-	printf("= as2_t3 =\n");
+	printf("= as2_t5 =\n");
 	printf("This unit test program is provided for Assignment 2, Task 3 of the course Operating Systems, University of Twente, 2011.\n\n");
 	printf("Your solution will be tested on a number of points. Afterwards, \"[End of Test]\" will be shown. IF this is not so, the program crashed and you're not done yet.\n");
 	printf("Please note: this program may detect some flaws, but may not detect all of them. Do *not* assume correctness of your solution on passing this test alone.\n\n");
