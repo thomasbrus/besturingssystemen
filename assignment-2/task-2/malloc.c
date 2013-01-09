@@ -1,10 +1,10 @@
-
-Code with additional comments
-/* Our modifications start from line ###TODO### */
-
-/*
-* malloc.C
+/* 
+This file contains the code of the original malloc.c as given in Minix in 
+/usr/src/lib/libc/ansi/malloc.c, but with our comments. We made some general comments about the 
+working of malloc(), and we added some comments that explain what a specific line of code does.
+Our comments start on line 55.
 */
+
 #if     _EM_PSIZE == 2
 #define BRKSIZE         1024
 #else
@@ -53,27 +53,32 @@ static int grow(size_t len)
 }
 
 /* Malloc basically works as follows:
-Malloc works with slots. A slot contains the number of bytes which are requested
-in malloc(size), preceeded by a pointer to the next slot in the memory. On a new
-malloc call, it hops through the slots that are not in use (‘free slots’) to
-find a slot that is big enough (it should not overlap with the next slot). If
-no such slot is available within the allocated space, it allocates new space by
-calling sbrk. If such a slot is available, it allocates that space. If the found
-space was bigger than needed, the remaining empty space is still available as a
-new (smaller) slot for new malloc calls, as it will be split apart. 
+Malloc works with slots. A slot contains the number of bytes which are requested in malloc(size), 
+preceeded by a pointer to the next slot in the memory. On a new malloc call, it hops through the 
+slots that are not in use (‘free slots’) to find a slot that is big enough (it should not overlap 
+with the next slot). If no such slot is available within the allocated space, it allocates new 
+space by calling _sbrk. If such a slot is available, it allocates that space. If the found space was 
+bigger than needed, the remaining empty space is still available as a new (smaller) slot for new 
+malloc calls, as it will be split apart (this is only done when the remaining space is not too 
+small).
 
 The structure of the slot system can be visualised as follows:
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 |  P   |                                 | |  P   |                                |
-| NEXT |            D A T A              | | NEXT |            D A T A             |
+| NEXT |            D A T A              | | NEXT |            D A T A             |   (...)
 |_SLOT_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _| |_SLOT_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 {                   SLOT #1              } {                   SLOT #2             }
 
-The pointer of slot 1 (P NEXT SLOT) points to the start address of the data part of slot 2. The pointer of slot 2 in its turn points to the start address of the data part of slot 3. The last slot of the chain has a pointer with address 0, which indicates it is the last slot.
-A pointer to the first empty slot is stored in variable _empty. The data part of every empty slot only contains another pointer to the next empty slot. In this way, malloc can (using function NextFree(), which is declared in rule ####TODO#####) visit all empty slots to check whether there is an empty slot available to be used by the caller of malloc.
+The pointer of slot 1 (P NEXT SLOT) points to the start address of the data part of slot 2. The 
+pointer of slot 2 in its turn points to the start address of the data part of slot 3. The last 
+slot of the chain has a pointer with address 0, which indicates it is the last slot.
+A pointer to the first empty slot is stored in variable _empty. The data part of every empty slot 
+only contains another pointer to the next empty slot. In this way, malloc can (using function 
+NextFree(), which is declared in malloc.c:16) visit all empty slots to check whether there 
+is an empty slot available to be used by the caller of malloc.
 
-The following lines contains the original code of malloc.c. We added a lot of extra comment lines in order to make more clear what actually happens.
-Further on, relevant code of other functions (_brk, _sbrk) are also included, as they are called in malloc.c.
+The following lines contains the original code of malloc.c. We added a lot of extra comment lines 
+in order to make more clear what actually happens.
 */
 
 
@@ -86,7 +91,7 @@ malloc(size_t size)
  if (size == 0)
        return NULL;  /* if size is 0, there is no need to allocate memory */
 
- for (ntries = 0; ntries < 2; ntries++){ /* the follow code is executed at least once, maybe twice, depending on whether the memory space has to grow or not. (see malloc.c:111) */
+ for (ntries = 0; ntries < 2; ntries++){ /* the follow code is executed at least once, maybe twice, depending on whether the memory space has to grow or not. */
        if ((len = Align(size, PTRSIZE) + PTRSIZE) < 2 * PTRSIZE) { /* if this happens the maximum amount of memory is reached and we've wrapped around */
                errno = ENOMEM;
                return NULL;
@@ -105,10 +110,10 @@ malloc(size_t size)
                next = NextSlot(p);    /* slot next to p */
                new = p + len;  /* slot position of new slot */
                if (new > next || new <= p)  /* if this is true, a slot with size 'len' will not fit in this empty slot. */
-                       continue;  /* so, go to next iteration (malloc.c: 93)*/
+                       continue;  /* so, go to next iteration (see malloc.c: 108)*/
                 /* if here, the new slot fits */
                if (new + PTRSIZE < next) {  /* if this is true, there is space left which can be used for another malloc call. */
-                       /* We will split the previous slot in two parts: a used part (used by us) and an empty part (can be used by someone else) */
+                       /* we will split the previous slot in two parts: a used part (used by us) and an empty part (can be used by another malloc call) */
                        NextSlot(new) = next;  /* after our slot 'new', the first slot will be 'next'. */
                        NextSlot(p) = new;
                        NextFree(new) = NextFree(p);
@@ -122,8 +127,8 @@ malloc(size_t size)
        }
         /* if here, a big enough free slot has not been found */
        if (grow(len) == 0)  /* let memory grow, check if successful */
-        /* if it was successful, go to the next iteration of the loop of malloc.c:78 */
-               break;  /* if not, stop malloc (malloc.c:117) */
+        /* if it was successful, go to the next iteration of the loop (see malloc.c:84) */
+               break;  /* if not, stop malloc (go to malloc.c:134) */
                
  }
  assert(ntries != 2);
@@ -132,7 +137,10 @@ malloc(size_t size)
 
 
 /*
-This function makes a previously allocated slot free again. First it looks for the first empty slot after the slot that we’ll free: the NextFree() of our slot should point to that slot. After that, we’ll set NextFree() of the first empty slot before our slot to our slot. In this way, the chain of empty slots is updated.
+The next function, free(), makes a previously allocated slot free again. First it looks for the 
+first empty slot after the slot that we’ll free: the NextFree() of our slot should point to that 
+slot. After that, we’ll set NextFree() of the first empty slot before our slot to our slot. In this 
+way, the chain of empty slots is updated.
 */
 void
 free(void *ptr)
@@ -166,60 +174,4 @@ free(void *ptr)
                NextFree(prev) = NextFree(p);
        }
  }
-}
-
-/*
-* _sbrk.C
-*/
-#include <lib.h>
-#define sbrk    _sbrk
-#include <unistd.h>
-
-extern char *_brksize;
-
-PUBLIC char *sbrk(incr)
-int incr;
-{
- char *newsize, *oldsize;
-
- oldsize = _brksize;
- newsize = _brksize + incr;
- if ((incr > 0 && newsize < oldsize) || (incr < 0 && newsize > oldsize))
-    return( (char *) -1);
- if (brk(newsize) == 0)
-    return(oldsize);
- else
-    return( (char *) -1);
-}
-
-/*
-* _brk.C
-*/
-#include <lib.h>
-#define brk    _brk
-#define sbrk    _sbrk
-#include <unistd.h>
-
-extern char *_brksize;
-
-/* Both OSF/1 and SYSVR4 man pages specify that brk(2) returns int.
-* However, BSD4.3 specifies that brk() returns char*.  POSIX omits
-* brk() on the grounds that it imposes a memory model on an architecture.
-* For this reason, brk() and sbrk() are not in the lib/posix directory.
-* On the other hand, they are so crucial to correct operation of so many
-* parts of the system, that we have chosen to hide the name brk using _brk,
-* as with system calls.  In this way, if a user inadvertently defines a
-* procedure brk, MINIX may continue to work because the true call is _brk.
-*/
-PUBLIC int brk(addr)
-char *addr;
-{
- message m;
-
- if (addr != _brksize) {
-    m.PMBRK_ADDR = addr;
-    if (_syscall(MM, BRK, &m) < 0) return(-1);
-    _brksize = m.m2_p1;
- }
- return(0);
 }
