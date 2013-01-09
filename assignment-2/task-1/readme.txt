@@ -13,12 +13,12 @@ Contents
   is more likely to be used as a part of a library. However, we can run the provided test program 
   as2_t1.c to test the functions implemented by task.c.
   First, we need to compile the task.c together with the test. Navigate to the source files with 
-  the terminal in an UNIX environment with gcc (we used the Minix image) and enter the following 
+  the terminal in an UNIX environment with cc (we used the Minix image) and enter the following 
   command:
   
-  $ gcc task.c as2_t1.c -Wall
+  $ cc as2_t1.c task.c -Wall
   
-  This command compiles as2_t1.c, with the ability to refer to functions of msort.c. 
+  This command compiles as2_t1.c, with the ability to refer to functions of task.c. 
   To run it, we use the following command:
   
   $ ./a.out  
