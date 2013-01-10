@@ -17,7 +17,7 @@ int calculate_index_from_node_address(unsigned long node_address) {
 
 void set_current_node(int current_node_index) {
   int* current_node_pointer = (int *)(get_MEM_BLOCK_START());
-  *current_node_pointer = (int *)current_node_index;
+  *current_node_pointer = current_node_index;
 }
 
 int get_current_node(void) {
@@ -31,7 +31,7 @@ int get_next_node_of_node(int node_index) {
 /* Sets the next node for a specific node */
 void set_next_node_of_node(int node_index, int next_node_index) {
   int* next_node_pointer = (int *)calculate_node_address_from_index(node_index);
-  *next_node_pointer = (int *)next_node_index;
+  *next_node_pointer = next_node_index;
 }
 
 void initialize_linked_list(int count) {
