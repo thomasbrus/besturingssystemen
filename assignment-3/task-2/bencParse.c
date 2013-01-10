@@ -17,13 +17,13 @@ typedef struct rss_entry {
 } rss_entry;
 
 //Common elements of a <CHANNEL> tag.
-typedef struct rss_body {
+typedef struct rss_channel {
 	char *title;
 	char *description;
 	char *link;
 	char *language;
 	struct rss_entry **item; 
-} rss_body;
+} rss_channel;
 
 
 char *read_file(const char *file, long long *len)
@@ -75,10 +75,10 @@ rss_entry *handleItem(be_node *node){
 	return re;		
 } 
 
-rss_body *handleBody(be_node *node){
+rss_channel *handleBody(be_node *node){
 	size_t i, j;
 	//Allocate memory for result
-	rss_body *result = (rss_body *) malloc(sizeof(rss_body));
+	rss_channel *result = (rss_channel *) malloc(sizeof(rss_channel));
 	if(node->type == BE_DICT){
 		//This node is a dictionary, as expected
 		//Now read through all elements and put the common ones in our struct
@@ -113,22 +113,22 @@ rss_body *handleBody(be_node *node){
 	return result;
 }
 
-void parseToJSON(rss_body *rssBody){
-	//Print the rss_body struct in JSON format.
+void parseToJSON(rss_channel *rssBody){
+	//Print the rss_channel struct in JSON format.
 	printf("{");
-	printf("'title' => '%s',",rssBody->title);
-	printf("'description' => '%s',",rssBody->description);
-	printf("'language' => '%s',",rssBody->language);
-	printf("'link' => '%s',",rssBody->link);;
-	printf("'items' => ");
+	printf("\"title\" : \"%s\",",rssBody->title);
+	printf("\"description\" : \"%s\",",rssBody->description);
+	printf("\"language\" : \"%s\",",rssBody->language);
+	printf("\"link\" : \"%s\",",rssBody->link);;
+	printf("\"items\" : ");
 	int i;
-	for(i=0; rssBody->item[i]; i++){
+	for (i = 0; rssBody->item[i]; i++){
 		printf("{");
-		printf("'title' => '%s',",rssBody->item[i]->title);
-		printf("'description' => '%s',",rssBody->item[i]->description);
-		printf("'guid' => '%s',",rssBody->item[i]->guid);
-		printf("'link' => '%s',",rssBody->item[i]->link);
-		printf("'pubDate' => '%s'",rssBody->item[i]->pubDate);
+		printf("\"title\" : \"%s\",",rssBody->item[i]->title);
+		printf("\"description\" : \"%s\",",rssBody->item[i]->description);
+		printf("\"guid\" : \"%s\",",rssBody->item[i]->guid);
+		printf("\"link\" : \"%s\",",rssBody->item[i]->link);
+		printf("\"pubDate\" : \"%s\"",rssBody->item[i]->pubDate);
 		printf("}");
 		if(rssBody->item[i+1]) { printf(","); }
 	}
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 		n = be_decoden(buf, len); 
 		if (n) {	
 			//Parsing succesful; now parse the output to our RSS structs
-			rss_body *rssPage = handleBody(n);
+			rss_channel *rssPage = handleBody(n);
 			//Give some output
 			parseToJSON(rssPage); 
 			//Free used memory
