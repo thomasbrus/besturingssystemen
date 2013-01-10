@@ -100,7 +100,9 @@ int main(int argc, char *argv[]){
 	printf("malloc took %d microseconds\n", mallocResult);
 
 	/*Benchmark task_alloc.*/
-	printf("Benchmarking task_alloc by allocating and deallocating %d tasks\n", TASKS_COUNT);
+	printf("Benchmarking task_c by allocating and deallocating %d tasks\n", TASKS_COUNT);
 	task_allocResult = task_allocBenchmark();
-	printf("task_alloc took %d microseconds\n", task_allocResult);
+	printf("task_c took %d microseconds\n", task_allocResult);
+
+	printf("The difference is %d microseconds\n", mallocResult - task_allocResult);
 }
