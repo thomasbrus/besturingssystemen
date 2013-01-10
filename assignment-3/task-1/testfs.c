@@ -58,7 +58,7 @@ static int reader(struct inode *inode, off_t offset, char **ptr,
 
         /* Generate the contents of the file into the 'data' buffer.
          */
-        str = "Hello world! Group 9 was here.";
+        str = "Hello world! Group 9 was here.\n";
 
         strcpy(data, str);
 
