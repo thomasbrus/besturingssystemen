@@ -1,13 +1,7 @@
-CFLAGS ?= -g
-CFLAGS += -Wall
-CPPFLAGS += -DBE_DEBUG
+all: beJson
 
-all: test
+beJson: bencode.c bencParse.c
+	gcc bencode.c bencParse.c -o beJson
 
-test: bencode.o
-	cc ${CFLAGS} -o test test.c bencode.o
-	
 clean:
-	rm -f *.o core test
-
-.PHONY: all clean
+	rm -f beJson
