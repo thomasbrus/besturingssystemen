@@ -207,7 +207,7 @@ rss_entry *handleItem(be_node *node){
     }
   }
 
-  return result;    
+  return result;
 } 
 
 rss_body *handleBody(be_node *node) {
@@ -281,7 +281,7 @@ rss_body *parse_bencode_from_file(const char *filename) {
   char *contents = 0;
   unsigned int length = read_file(filename, &contents);
 
-  if (node = be_decoden(contents, length)) {
+  if ((node = be_decoden(contents, length))) {
     return handleBody(node);
 
   } else {
@@ -293,4 +293,5 @@ int main(int argc, char *argv[]) {
   my_rss_body = parse_bencode_from_file("/mnt/code/Practicum/assignment-3/task-3/file.ben");
   setup_root_dir();
   start_vtreefs(&hooks, 10, &root_stat, 0);
+  return 0;
 }

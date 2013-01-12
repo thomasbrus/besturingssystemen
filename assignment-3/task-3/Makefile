@@ -5,7 +5,7 @@ SRCS=   rssfs.c bencode.c
 DPADD+= ${LIBVTREEFS} ${LIBSYS}
 LDADD+= -lvtreefs -lsys
 
-CFLAGS+= -D_NETBSD_SOURCE=1
+CFLAGS+= -D_NETBSD_SOURCE=1 -Wall
 
 MAN=
 BINDIR?= /sbin
