@@ -5,6 +5,9 @@
 *.lib
 *.a
 
+# Dependencies
+*.d
+
 # Shared objects
 *.so
 *.so.*
