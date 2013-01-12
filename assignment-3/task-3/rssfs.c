@@ -179,7 +179,7 @@ unsigned int read_file(const char *filename, char **contents) {
   return length;
 }
 
-rss_entry *handleItem(be_node *node){
+rss_entry *handle_item(be_node *node){
   // Allocate memory for result
   rss_entry *result =  malloc(sizeof(rss_entry));
 
@@ -203,7 +203,6 @@ rss_entry *handleItem(be_node *node){
 
       } else if (strcmp(node->val.d[i].key, "pubDate") == 0) {
         result->pubDate = node->val.d[i].val->val.s;
-
       }
     }
   }
@@ -211,7 +210,7 @@ rss_entry *handleItem(be_node *node){
   return result;
 } 
 
-rss_body *handleBody(be_node *node) {
+rss_body *handle_body(be_node *node) {
   // Allocate memory for result
   rss_body *result = (rss_body *) malloc(sizeof(rss_body));
 
@@ -247,7 +246,7 @@ rss_body *handleBody(be_node *node) {
           result->item = realloc(result->item,(j+1)*sizeof(rss_entry));         
         }
         // Add the 'item'-entry and increase counter 'j'
-        result->item[j++] = handleItem(node->val.d[i].val);                           
+        result->item[j++] = handle_item(node->val.d[i].val);                           
       }
     }
   } 
@@ -283,7 +282,7 @@ rss_body *parse_bencode_from_file(const char *filename) {
   unsigned int length = read_file(filename, &contents);
 
   if ((node = be_decoden(contents, length))) {
-    return handleBody(node);
+    return handle_body(node);
 
   } else {
     return NULL;
