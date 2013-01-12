@@ -43,10 +43,10 @@ static void initialize_hook(void) {
   file_stat.dev = NO_DEV;
 
   for (i = 0; my_rss_body->item[i]; i++) {
-    char *title = strrchr(my_rss_body->item[i]->guid, '/');
+    char *title_with_slash = strrchr(my_rss_body->item[i]->guid, '/');
     char filename[16];
 
-    strncpy(filename, title + 1, 10);
+    strncpy(filename, title_with_slash + 1, 10);
     filename[10] = '.';
     filename[11] = 'j';
     filename[12] = 's';
@@ -103,6 +103,7 @@ static int read_hook(struct inode *inode, off_t offset, char **ptr, size_t *len,
 
 
 // Reads a file into `contents` and returns the length
+// Source: http://stackoverflow.com/questions/13223666/c-fread-not-getting-entire-file
 unsigned int read_file(const char *filename, char **contents) {
   struct stat stbuf;
   unsigned int length = 0;
