@@ -5,6 +5,10 @@
 *.lib
 *.a
 
+# Dependencies
+*.d
+*.depend
+
 # Shared objects
 *.so
 *.so.*
@@ -13,6 +17,8 @@
 # Executables
 *.out
 *.app
+/assignment-3/task-3/rssfs
+/assignment-3/task-1/testfs
 
 # OS X
 .DS_STORE
