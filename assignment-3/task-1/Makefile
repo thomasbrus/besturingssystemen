@@ -1,6 +1,6 @@
 # Makefile for TestFS server
-PROG=   testfs
-SRCS=   testfs.c
+PROG=   1f
+SRCS=   1f.c
 
 DPADD+= ${LIBVTREEFS} ${LIBSYS}
 LDADD+= -lvtreefs -lsys
