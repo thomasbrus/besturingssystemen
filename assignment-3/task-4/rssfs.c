@@ -45,23 +45,31 @@ struct inode *get_inode_by_date (char *pubDate) {
   dir_stat.size = 0;
   dir_stat.dev = NO_DEV;
 
-  strncpy(month, pubDate+8, 3);
-  month[3] = 0;
-  strncpy(year, pubDate+12, 4);
-  year[4] = 0;
-  
-/*  printf("Month: %s\n", month);
-  printf("Year: %s\n", year);*/
-
-  temp = get_inode_by_name(get_root_inode(), year);
-
-  if (temp == 0){
-    temp = add_inode(get_root_inode(), year, NO_INDEX, &dir_stat, 0, 0);
-    result = add_inode(temp, month, NO_INDEX, &dir_stat, 0, 0);
-  } else {
-    result = get_inode_by_name(temp, month);
+  if (strcmp (pubDate, "") == 0){
+    result = get_inode_by_name(get_root_inode(), "no_pubDate");
     if (result == 0){
+      result = add_inode(get_root_inode(), "no_pubDate", NO_INDEX, &dir_stat, 0, 0);
+    }
+  } else {
+
+    strncpy(month, pubDate+8, 3);
+    month[3] = 0;
+    strncpy(year, pubDate+12, 4);
+    year[4] = 0;
+    
+  /*  printf("Month: %s\n", month);
+    printf("Year: %s\n", year);*/
+
+    temp = get_inode_by_name(get_root_inode(), year);
+
+    if (temp == 0){
+      temp = add_inode(get_root_inode(), year, NO_INDEX, &dir_stat, 0, 0);
       result = add_inode(temp, month, NO_INDEX, &dir_stat, 0, 0);
+    } else {
+      result = get_inode_by_name(temp, month);
+      if (result == 0){
+        result = add_inode(temp, month, NO_INDEX, &dir_stat, 0, 0);
+      }
     }
   }
 
@@ -70,6 +78,7 @@ struct inode *get_inode_by_date (char *pubDate) {
 
 static void initialize_hook(void) {
   int i = 0;
+  int no_guid = 0;
   struct inode_stat file_stat;
 
   file_stat.mode = S_IFREG | 0444;
@@ -79,16 +88,22 @@ static void initialize_hook(void) {
   file_stat.dev = NO_DEV;
 
   for (i = 0; my_rss_body->item[i]; i++) {
-    char *title_with_slash = strrchr(my_rss_body->item[i]->guid, '/');
+    char *title_with_slash;
     char filename[16];
+    if (strcmp(my_rss_body->item[i]->guid, "") == 0){
+      char index[5];
+      sprintf (index, "%d", no_guid);
+      strcpy(filename, "no_guid_");
+      strcat(filename, index);
+      strcat(filename, ".json");
+      no_guid ++;
+    } else {
+      title_with_slash = strrchr(my_rss_body->item[i]->guid, '/');
 
-    strncpy(filename, title_with_slash + 1, 10);
-    filename[10] = '.';
-    filename[11] = 'j';
-    filename[12] = 's';
-    filename[13] = 'o';
-    filename[14] = 'n';
-    filename[15] = 0;
+      strncpy(filename, title_with_slash + 1, 10);
+      filename[10] = 0;
+      strcat (filename, ".json");
+    }
 
     add_inode(get_inode_by_date(my_rss_body->item[i]->pubDate), filename, NO_INDEX, &file_stat, 0, (cbdata_t) i);
   }
@@ -218,6 +233,12 @@ unsigned int read_file(const char *filename, char **contents) {
 rss_entry *handle_item(be_node *node){
   // Allocate memory for result
   rss_entry *result =  malloc(sizeof(rss_entry));
+
+  result->title = "";
+  result->description = "";
+  result->link = "";
+  result->guid = "";
+  result->pubDate = "";
 
   if (node->type == BE_DICT) {
     size_t i;
