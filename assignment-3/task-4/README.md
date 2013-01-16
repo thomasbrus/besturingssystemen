@@ -13,7 +13,7 @@ There are two categories of of directories imposed on the file system, depending
 
 In this case, the following directory structure is used:
 
-/<mount location>/<yyyy>/<month>/<file name>.json
+	$/<mount location>/<yyyy>/<month>/<file name>.json
 
 Where month is a three letter abbreviation of the month, beginning with a capital.
 
@@ -21,6 +21,6 @@ Where month is a three letter abbreviation of the month, beginning with a capita
 
 In this case, the following directory structure is used:
 
-/<mount location>/no_pubDate/<file name>.json
+	$/<mount location>/no_pubDate/<file name>.json
 
-The file name is the guid of the RSS entry if it exists. If it does not, "no_guid_<index>" is used as the file name, where <index> represents an integer. This integer is different by every RSS entry that does not have a guid in order to avoid file conflicts.
+The file name is the guid of the RSS entry if it exists. If it does not, "no_guid_$index" is used as the file name, where $index represents an integer. This integer is different by every RSS entry that does not have a guid in order to avoid file conflicts.
