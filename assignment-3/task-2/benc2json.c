@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include "bencode.h"
 
-//You can test this program by typing the following:
-//# clear && gcc bencode.c bencParse.c && ./a.out file.ben
-
 //Common elements of an <ITEM> tag.
 typedef struct rss_entry {
 	char *title;
@@ -29,7 +26,7 @@ typedef struct rss_channel {
 char *read_file(const char *file, long long *len)
 {
 	//Reads a file and returns the contents as a string.
-	//Source: test.c (provided by wiki)
+	//Original source: test.c (provided by wiki)
 	struct stat st;
 	char *ret = NULL;
 	FILE *fp;
@@ -83,27 +80,27 @@ rss_channel *handleBody(be_node *node){
 		//This node is a dictionary, as expected
 		//Now read through all elements and put the common ones in our struct
 		for (i = 0, j = 0; node->val.d[i].val; ++i) {			
-			if (strcmp(node->val.d[i].key,"title") == 0){	
+			if (strcmp(node->val.d[i].key, "title") == 0){	
 				result->title = node->val.d[i].val->val.s;
 			} else 
-			if (strcmp(node->val.d[i].key,"description") == 0){	
+			if (strcmp(node->val.d[i].key, "description") == 0){	
 				result->description = node->val.d[i].val->val.s;
 			} else 
-			if (strcmp(node->val.d[i].key,"link") == 0){	
+			if (strcmp(node->val.d[i].key, "link") == 0){	
 				result->link = node->val.d[i].val->val.s;
 			} else 
-			if (strcmp(node->val.d[i].key,"language") == 0){	
+			if (strcmp(node->val.d[i].key, "language") == 0){	
 				result->language = node->val.d[i].val->val.s;
 			} else	
-			if (strcmp(node->val.d[i].key,"item:") == 1){ //TODO: improve this
+			if (strncmp(node->val.d[i].key, "item:", 5) == 0){
 				int toInit = 5;	//Initial memory to be used for 'item'-entries				
 				if(j == 0) {
 					//First run, so allocate the memory for the 'toInit' elements
-					result->item =  malloc(sizeof(rss_entry *) * toInit);												
+					result->item =  malloc(toInit * sizeof(rss_entry *));												
 				} else
 				if(j >= toInit){
 					//There are more elements then we expected in 'toInit', so allocate extra memory
-					result->item =  realloc(result->item,(j+1)*sizeof(rss_entry));					
+					result->item =  realloc(result->item, (j + 1) * sizeof(rss_entry *));					
 				}
 				//Add the 'item'-entry and increase counter 'j'
 				result->item[j++] =  handleItem(node->val.d[i].val);													 	
@@ -130,24 +127,23 @@ void parseToJSON(rss_channel *rssBody){
 		printf("\"link\" : \"%s\",",rssBody->item[i]->link);
 		printf("\"pubDate\" : \"%s\"",rssBody->item[i]->pubDate);
 		printf("}");
-		if(rssBody->item[i+1]) { printf(","); }
+		if(rssBody->item[i+1]) { printf(", "); }
 	}
-	printf("}");
+	printf("}\n");
 }
 
 int main(int argc, char *argv[])
 {
-	int i;
 	setbuf(stdout, NULL);
-	for (i = 1; i < argc; ++i) {
+	if(argc == 2) {
 		char *buf;
 		long long len;
 		be_node *n;
 
-		buf = read_file(argv[i], &len);
+		buf = read_file(argv[1], &len);
 		if (!buf) {
-			buf = argv[i];
-			len = strlen(argv[i]);
+			buf = argv[1];
+			len = strlen(argv[1]);
 		}
 
 		//Use bencode decoder to parse the file into the bencode structure
@@ -164,8 +160,10 @@ int main(int argc, char *argv[])
 			//Parsing unsuccessful
 			printf("Parsing failed!\n");
 		}
-		if (buf != argv[i])
+		if (buf != argv[1])
 			free(buf);
+	} else {
+		printf("Please provide one filename as a parameter.\n");
 	}
 	return 0;
 }
