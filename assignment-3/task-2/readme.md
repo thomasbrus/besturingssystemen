@@ -3,12 +3,15 @@
 ## How to run the program?
 
 To compile the program, use the following command:
+
     $ gcc bencode.c benc2json.c -Wall
 
 To run the program, use the following command:
-    $ ./a.out `<inputfile>`
+
+    $ ./a.out <inputfile>
 
 The input file is supposed to be a bencoded rss file, like file.ben is. For example:
+
     $ ./a.out file.ben
 
 ## How does the program work?
@@ -22,7 +25,7 @@ First of all, the program tries to get the size of the file. It uses stat() to g
 The program uses bencode.c to parse the file contents in bencode structs (which are declared in bencode.h), according to the bencode standard. If bencode.c was able to decode the file without errors, the program continues.  
 
 ### Filling the structs
-Now the program tries to put the retrieved bencode structure in an RSS structure. It checks whether common elements in the `<CHANNEL>` tags are available; if they are, they are put in an rss_channel struct (which is declared in benc2json.c:17). When an `<ITEM>` tag is detected, a similar process takes place: the common elements in the `<ITEM>` tag are put in their own rss_entry struct (declared in benc2json.c:8). The struct is added to the rss_channel struct. Since there are is a variable ammount of `<ITEM>` elements in a `<CHANNEL>`, the memory for the various rss_entry structs is dynamically allocated. After all bencode elements are checked, the program continues. 
+Now the program tries to put the retrieved bencode structure in an RSS structure. It checks whether common elements in the `<CHANNEL>` tags are available; if they are, they are put in an `rss_channel` struct (which is declared in benc2json.c:17). When an `<ITEM>` tag is detected, a similar process takes place: the common elements in the `<ITEM>` tag are put in their own `rss_entry` struct (declared in benc2json.c:8). The struct is added to the `rss_channel` struct. Since there are is a variable ammount of `<ITEM>` elements in a `<CHANNEL>`, the memory for the various `rss_entry` structs is dynamically allocated. After all bencode elements are checked, the program continues. 
 
 ### Outputting the JSON
 Now the program reads out the created rss_channel struct (including the rss_entry structs) and outputs it in the JSON standard.
