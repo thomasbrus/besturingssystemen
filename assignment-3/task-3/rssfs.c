@@ -38,16 +38,20 @@ static void initialize_hook(void) {
   int i = 0;
   struct inode_stat file_stat;
 
+  // Set file permissions
   file_stat.mode = S_IFREG | 0444;
   file_stat.uid = 0;
   file_stat.gid = 0;
   file_stat.size = 0;
   file_stat.dev = NO_DEV;
 
+  // Loop through all items
   for (i = 0; my_rss_body->item[i]; i++) {
     char *title_with_slash = strrchr(my_rss_body->item[i]->guid, '/');
     char filename[16];
 
+    // Create the filename by combining the last part
+    // of the guid and '.json' as extension
     strncpy(filename, title_with_slash + 1, 10);
     filename[10] = '.';
     filename[11] = 'j';
@@ -56,20 +60,21 @@ static void initialize_hook(void) {
     filename[14] = 'n';
     filename[15] = 0;
 
+    // Virtually create the file and pass the index as callback data
     add_inode(get_root_inode(), filename, NO_INDEX, &file_stat, 0, (cbdata_t) i);
   }
 }
 
+/* This hook will be called every time a regular file is read. We use
+ * it to dynamically generate the contents of our file.
+ */
 static int read_hook(struct inode *inode, off_t offset, char **ptr, size_t *len, cbdata_t cbdata) {
-  /* This hook will be called every time a regular file is read. We use
-   * it to dynamically generate the contents of our file.
-   */
   static char data[1023];
+
+  // Parse callback data to index
   int i = (int) cbdata;
 
-  /* Generate the contents of the file into the 'data' buffer.
-   */
-
+  // Generate the contents of the file into the 'data' buffer.
   sprintf(data,
     "{\n"
     "\t\"title\": \"%s\",\n"
