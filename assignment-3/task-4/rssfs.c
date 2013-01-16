@@ -32,6 +32,8 @@ typedef struct rss_body {
 rss_body *my_rss_body;
 struct inode_stat root_stat;
 
+/* Returns the inode of the directory based on the date of RSS entry (pubDate). 
+   If it does not have a pubDate atribute, it will return the inode of the directory with name "no_pubDate". */
 struct inode *get_inode_by_date (char *pubDate) {
   struct inode *result;
   struct inode *temp;
@@ -39,6 +41,7 @@ struct inode *get_inode_by_date (char *pubDate) {
   char month[4];
   char year[5];
 
+  // Setting the variables of the struct in order to create a new directory.
   dir_stat.mode = S_IFDIR;
   dir_stat.uid = 0;
   dir_stat.gid = 0;
@@ -46,28 +49,31 @@ struct inode *get_inode_by_date (char *pubDate) {
   dir_stat.dev = NO_DEV;
 
   if (strcmp (pubDate, "") == 0){
+    // The RSS entry does not have an attribute called pubDate.
     result = get_inode_by_name(get_root_inode(), "no_pubDate");
     if (result == 0){
       result = add_inode(get_root_inode(), "no_pubDate", NO_INDEX, &dir_stat, 0, 0);
     }
   } else {
-
+    // Extract the month from pubDate.
     strncpy(month, pubDate+8, 3);
+    // Setting the end of the string.
     month[3] = 0;
+    // Extract the year from pubDate.
     strncpy(year, pubDate+12, 4);
     year[4] = 0;
-    
-  /*  printf("Month: %s\n", month);
-    printf("Year: %s\n", year);*/
 
     temp = get_inode_by_name(get_root_inode(), year);
 
     if (temp == 0){
+      // Make a new directory.
       temp = add_inode(get_root_inode(), year, NO_INDEX, &dir_stat, 0, 0);
       result = add_inode(temp, month, NO_INDEX, &dir_stat, 0, 0);
     } else {
+      // The directory already exists.
       result = get_inode_by_name(temp, month);
       if (result == 0){
+        // Make a new subdirectory.
         result = add_inode(temp, month, NO_INDEX, &dir_stat, 0, 0);
       }
     }
@@ -76,11 +82,14 @@ struct inode *get_inode_by_date (char *pubDate) {
   return result;
 }
 
+/* init_hook is called when the file system is mounted. At this point, VTreeFS has initialized itself, and it is possible to add inodes to the tree. */
 static void initialize_hook(void) {
   int i = 0;
+  // This integer tracks the number of RSS entries in order to prevent mutiple files with the same name in the same directory.
   int no_guid = 0;
   struct inode_stat file_stat;
 
+  // Setting the variables in order to create a new file.
   file_stat.mode = S_IFREG | 0444;
   file_stat.uid = 0;
   file_stat.gid = 0;
@@ -91,7 +100,9 @@ static void initialize_hook(void) {
     char *title_with_slash;
     char filename[16];
     if (strcmp(my_rss_body->item[i]->guid, "") == 0){
+      // The RSS entry does not have a guid attribute.
       char index[5];
+      // Convert no_guid to a string.
       sprintf (index, "%d", no_guid);
       strcpy(filename, "no_guid_");
       strcat(filename, index);
@@ -109,6 +120,9 @@ static void initialize_hook(void) {
   }
 }
 
+/* read_hook is called when a user process reads from a regular (S_IFREG) file inode.
+   inode and cbdata are the inode and callback data of this regular file, respectively.
+   offset is the zero-based offset into the file from which reading should start, and len points to the requested read length. */
 static int read_hook(struct inode *inode, off_t offset, char **ptr, size_t *len, cbdata_t cbdata) {
   /* This hook will be called every time a regular file is read. We use
    * it to dynamically generate the contents of our file.
@@ -234,6 +248,7 @@ rss_entry *handle_item(be_node *node){
   // Allocate memory for result
   rss_entry *result =  malloc(sizeof(rss_entry));
 
+  // Setting the strings in order to check later if they are set.
   result->title = "";
   result->description = "";
   result->link = "";
@@ -348,7 +363,7 @@ rss_body *parse_bencode_from_file(const char *filename) {
 
 int main(int argc, char *argv[]) {
 
-  /* Dit kan per systeem verschillen! */
+  // This file location is system dependent!
   my_rss_body = parse_bencode_from_file("/mnt/hgfs/GitHub/besturingssystemen/assignment-3/task-4/file.ben");
   setup_root_dir();
   start_vtreefs(&hooks, 10, &root_stat, 0);
