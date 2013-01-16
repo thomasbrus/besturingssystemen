@@ -1,14 +1,13 @@
 # Makefile for TestFS server
-PROG=   1f
-SRCS=   1f.c
+PROG=   rssfs
+SRCS=   rssfs.c bencode.c
 
 DPADD+= ${LIBVTREEFS} ${LIBSYS}
 LDADD+= -lvtreefs -lsys
 
-CFLAGS+= -D_NETBSD_SOURCE=1
+CFLAGS+= -D_NETBSD_SOURCE=1 -Wall
 
 MAN=
-
 BINDIR?= /sbin
 
 .include <bsd.prog.mk>

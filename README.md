@@ -1,1 +1,1 @@
-Uitwerkingen van de practicum opgaven van Besturingssystemen.
+Uitwerkingen van de practicumopgaven van Besturingssystemen.
