@@ -23,32 +23,38 @@ typedef struct rss_channel {
 } rss_channel;
 
 
-char *read_file(const char *file, long long *len)
-{
+char *read_file(const char *file, long long *len) {
 	//Reads a file and returns the contents as a string.
 	//Original source: test.c (provided by wiki)
 	struct stat st;
 	char *ret = NULL;
 	FILE *fp;
-	if (stat(file, &st))
+	//Get the file statistics
+	if (stat(file, &st)) 
 		return ret;
+	//Get the file size
 	*len = st.st_size;
+	//Create a FILE stream
 	fp = fopen(file, "r");
 	if (!fp)
 		return ret;
+	//Allocate the memory necessary (= file size)
 	ret = malloc(*len);
 	if (!ret)
 		return NULL;
-	fread(ret, 1, *len, fp);
+	//Start reading, put output in memory
+	fread(ret, 1, *len, fp); 
+	//Close stream
 	fclose(fp);
+	//Return pointer to file contents
 	return ret;
 }
 
-rss_entry *handleItem(be_node *node){
+rss_entry *handleItem(be_node *node) {
 	size_t i;
 	//Allocate memory for result
 	rss_entry *re =  malloc(sizeof(rss_entry));
-	if(node->type == BE_DICT){
+	if(node->type == BE_DICT) {
 		//This node is a dictionary, as expected
 		//Now read through all elements and put the common ones in our struct
 		for (i = 0; node->val.d[i].val; ++i) {
@@ -72,29 +78,29 @@ rss_entry *handleItem(be_node *node){
 	return re;		
 } 
 
-rss_channel *handleBody(be_node *node){
+rss_channel *handleChannel(be_node *node) {
 	size_t i, j;
 	//Allocate memory for result
 	rss_channel *result = (rss_channel *) malloc(sizeof(rss_channel));
-	if(node->type == BE_DICT){
+	if (node->type == BE_DICT) {
 		//This node is a dictionary, as expected
 		//Now read through all elements and put the common ones in our struct
 		for (i = 0, j = 0; node->val.d[i].val; ++i) {			
-			if (strcmp(node->val.d[i].key, "title") == 0){	
+			if (strcmp(node->val.d[i].key, "title") == 0) {	
 				result->title = node->val.d[i].val->val.s;
 			} else 
-			if (strcmp(node->val.d[i].key, "description") == 0){	
+			if (strcmp(node->val.d[i].key, "description") == 0) {	
 				result->description = node->val.d[i].val->val.s;
 			} else 
-			if (strcmp(node->val.d[i].key, "link") == 0){	
+			if (strcmp(node->val.d[i].key, "link") == 0) {	
 				result->link = node->val.d[i].val->val.s;
 			} else 
-			if (strcmp(node->val.d[i].key, "language") == 0){	
+			if (strcmp(node->val.d[i].key, "language") == 0) {	
 				result->language = node->val.d[i].val->val.s;
 			} else	
-			if (strncmp(node->val.d[i].key, "item:", 5) == 0){
+			if (strncmp(node->val.d[i].key, "item:", 5) == 0) {
 				int toInit = 5;	//Initial memory to be used for 'item'-entries				
-				if(j == 0) {
+				if (j == 0) {
 					//First run, so allocate the memory for the 'toInit' elements
 					result->item =  malloc(toInit * sizeof(rss_entry *));												
 				} else
@@ -110,7 +116,7 @@ rss_channel *handleBody(be_node *node){
 	return result;
 }
 
-void parseToJSON(rss_channel *rssBody){
+void parseToJSON(rss_channel *rssBody) {
 	//Print the rss_channel struct in JSON format.
 	printf("{");
 	printf("\"title\" : \"%s\",",rssBody->title);
@@ -119,7 +125,7 @@ void parseToJSON(rss_channel *rssBody){
 	printf("\"link\" : \"%s\",",rssBody->link);;
 	printf("\"items\" : ");
 	int i;
-	for (i = 0; rssBody->item[i]; i++){
+	for (i = 0; rssBody->item[i]; i++) {
 		printf("{");
 		printf("\"title\" : \"%s\",",rssBody->item[i]->title);
 		printf("\"description\" : \"%s\",",rssBody->item[i]->description);
@@ -134,7 +140,6 @@ void parseToJSON(rss_channel *rssBody){
 
 int main(int argc, char *argv[])
 {
-	setbuf(stdout, NULL);
 	if(argc == 2) {
 		char *buf;
 		long long len;
@@ -142,15 +147,14 @@ int main(int argc, char *argv[])
 
 		buf = read_file(argv[1], &len);
 		if (!buf) {
-			buf = argv[1];
-			len = strlen(argv[1]);
+			printf("Could not open file.\n");
 		}
 
 		//Use bencode decoder to parse the file into the bencode structure
 		n = be_decoden(buf, len); 
 		if (n) {	
 			//Parsing succesful; now parse the output to our RSS structs
-			rss_channel *rssPage = handleBody(n);
+			rss_channel *rssPage = handleChannel(n);
 			//Give some output
 			parseToJSON(rssPage); 
 			//Free used memory
