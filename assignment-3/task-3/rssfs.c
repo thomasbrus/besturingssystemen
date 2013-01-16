@@ -11,6 +11,8 @@
 
 #include "bencode.h"
 
+#define EXAMPLE_FILE "/mnt/code/Practicum/assignment-3/task-3/file.ben"
+
 // Common elements of an <ITEM> tag.
 typedef struct rss_entry {
   char *title;
@@ -100,7 +102,6 @@ static int read_hook(struct inode *inode, off_t offset, char **ptr, size_t *len,
 
   return OK;
 }
-
 
 // Reads a file into `contents` and returns the length
 // Source: http://stackoverflow.com/questions/13223666/c-fread-not-getting-entire-file
@@ -276,21 +277,24 @@ struct fs_hooks hooks = {
   NULL  /* message_hook */
 };
 
+// Parses the contents of a bencoded file in a rss_body struct
 rss_body *parse_bencode_from_file(const char *filename) {
   be_node *node;
   char *contents = 0;
+
+  // Read the file and store its length
   unsigned int length = read_file(filename, &contents);
 
+  // Try to decode the contents
   if ((node = be_decoden(contents, length))) {
     return handle_body(node);
-
   } else {
     return NULL;
   }
 }
 
 int main(int argc, char *argv[]) {
-  my_rss_body = parse_bencode_from_file("/mnt/code/Practicum/assignment-3/task-3/file.ben");
+  my_rss_body = parse_bencode_from_file(EXAMPLE_FILE);
   setup_root_dir();
   start_vtreefs(&hooks, 10, &root_stat, 0);
   return 0;
