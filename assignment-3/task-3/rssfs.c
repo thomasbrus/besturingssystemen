@@ -238,9 +238,7 @@ rss_body *handle_body(be_node *node) {
       } else if (strcmp(node->val.d[i].key, "language") == 0) {
         result->language = node->val.d[i].val->val.s;
 
-      } else if (strcmp(node->val.d[i].key, "item:") == 1) {
-        // TODO: improve this
-        // Initial memory to be used for 'item'-entries
+      } else if (strncmp(node->val.d[i].key, "item:", 5) == 0) {
         int toInit = 5;
 
         if (j == 0) {
