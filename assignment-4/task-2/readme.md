@@ -2,15 +2,14 @@
 -------------------------
 ## Fragment 1
 ### Vulnerabilities
-The program puts a given input parameter in an array of chars. The original code did not check whether the given input would fit in the allocated char array. If the input was bigger than the initialized 90 chars, the data could have been written into the memory on a location allocated by another program. This would corrupt the program. Even worse, it could be exploited to execute malicious code within another program. 
+The program puts a given input parameter in an array of chars. The original code did not check whether the given input would fit in the allocated char array. If the input was bigger than the initialized 90 chars, the data could have been written into the memory on a location allocated by another program. This would corrupt the program. Even worse, it could be exploited to execute malicious code within another program. It could also overflow the stack. 
 
 ## How we fixed it
-We added the check "strlen(av[1]) <=90" to make sure the input would fit in our memory block. 
+We added the check "strlen(av[1]) <= 90" to make sure the input would fit in our memory block. 
 
 ## Fragment 2
 ### Vulnerabilities
-This program has two vulnerabilities. First of all, the original program did not check whether there was a parameter set. This can be exploided because (...).
-Secondly, the program calls printf without a formatting parameter. This results in an uncontrolled format string: the original code interprets its argument as a format string. So by typing
+This program has two vulnerabilities. First of all, the original program did not check whether there was a parameter set. Secondly, the program calls printf without a formatting parameter. This results in an uncontrolled format string: the original code interprets its argument as a format string. So by typing
 
 $ ./a.out %p
 
