@@ -1,0 +1,25 @@
+#!/bin/bash          
+
+# init user by adding user to new group, TODO prompt for teacher user account
+sudo groupadd -f teacher
+sudo usermod -a -G teacher oscourse
+
+# init dirs
+mkdir ~/assignments
+chown :teacher ~/assignments
+
+# setgid bit, so all new folders within automatically inherit group 
+chmod g+s ~/assignments
+
+# create dirs for all students, TODO prompt student user accounts
+mkdir ~/assignments/twan
+chown twan ~/assignments/twan
+
+mkdir ~/assignments/wietze
+chown wietze ~/assignments/wietze
+
+# lock down
+chmod 070 -R ~/assignments/*
+
+# unlock
+chmod 770 -R ~/assignments/*
