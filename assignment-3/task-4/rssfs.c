@@ -363,7 +363,7 @@ rss_body *parse_bencode_from_file(const char *filename) {
 int main(int argc, char *argv[]) {
 
   // This file location is system dependent!
-  my_rss_body = parse_bencode_from_file("/mnt/hgfs/GitHub/besturingssystemen/assignment-3/task-4/file.ben");
+  my_rss_body = parse_bencode_from_file("/mnt/code/Practicum/assignment-3/task-3/file.ben");
   setup_root_dir();
   start_vtreefs(&hooks, 10, &root_stat, 0);
 

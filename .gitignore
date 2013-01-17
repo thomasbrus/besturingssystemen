@@ -23,3 +23,7 @@
 # OS X
 .DS_STORE
 a.out.dSYM
+
+# Hidden
+secret.txt
+secret.md
