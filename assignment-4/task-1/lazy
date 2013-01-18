@@ -1,25 +1,36 @@
 #!/bin/bash          
 
-# init user by adding user to new group, TODO prompt for teacher user account
-sudo groupadd -f teacher
-sudo usermod -a -G teacher oscourse
+function init_dir {
+  echo "Please enter your user account:"
+  read TEACHER_ACCOUNT
 
-# init dirs
-mkdir ~/assignments
-chown :teacher ~/assignments
+  echo "Please enter student account, use ; as delimiter"
+  read STUDENT_ACCOUNTS
 
-# setgid bit, so all new folders within automatically inherit group 
-chmod g+s ~/assignments
+  # init user by adding user to new group
+  sudo groupadd -f teacher
+  sudo usermod -a -G teacher $TEACHER_ACCOUNT
 
-# create dirs for all students, TODO prompt student user accounts
-mkdir ~/assignments/twan
-chown twan ~/assignments/twan
+  # init dirs
+  mkdir -p ~/assignments
+  chown :teacher ~/assignments
+  chmod 075 ~/assignments
 
-mkdir ~/assignments/wietze
-chown wietze ~/assignments/wietze
+  # setgid bit, so all new folders within automatically inherit group 
+  chmod g+s ~/assignments
 
-# lock down
-chmod 070 -R ~/assignments/*
+  # create dirs for all students, TODO check for existence account
+  export IFS=";" # configure ; as the new delimiter
+  for STUDENT_ACCOUNT in $STUDENT_ACCOUNTS; do
+    mkdir -p ~/assignments/$STUDENT_ACCOUNT
+    chown $STUDENT_ACCOUNT ~/assignments/$STUDENT_ACCOUNT
+  done
+}
 
-# unlock
-chmod 770 -R ~/assignments/*
+function lock_down {
+  chmod 070 -R ~/assignments/*
+}
+
+function unlock { 
+  chmod 770 -R ~/assignments/*
+}
