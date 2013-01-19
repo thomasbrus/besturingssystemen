@@ -18,11 +18,11 @@ This resulted in the following decrypted sentences:
 After the decryption of the secret codes, we analyzed the encrypter in order
 to figure out it's algorithm. Entering the character 'a' showed 'c' as
 encrypted text. But entering 'aa' didn't show 'cc', but 'cp' instead. We
-came to the conclusion that the caesar shift depended on the position of the
+came to the conclusion that the caesar shift depends on the position of the
 character in the sentence.
 
 Using a very long sequence of a's we found repition after 130 characters. This
-let us conclude that the shift of each character depends on it's position and
+led us to conclude that the shift of each character depends on it's position and
 can be looked up in a predfined array of offsets.
 
 ## Building the decrypter
