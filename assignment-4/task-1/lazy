@@ -1,36 +1,81 @@
 #!/bin/bash          
 
+function usage {
+  echo 'Usage: lazy [OPTION]'
+  echo 'Help the lazy teacher doing his hard work by setting up '
+  echo ''
+  echo '  --init          Initialize an assignments directory in current directory. By default it is locked down.'
+  echo '  --add_students  Add student directories to the assignments directory.'
+  echo '  --lock_down     Lock down the assignments directory for all students.'
+  echo '  --unlock        Unlock the assignments directory for all students.'
+}
+
 function init_dir {
-  echo "Please enter your user account:"
+  echo "Please enter the teacher's account:"
   read TEACHER_ACCOUNT
 
-  echo "Please enter student account, use ; as delimiter"
-  read STUDENT_ACCOUNTS
+  check_user $TEACHER_ACCOUNT
 
-  # init user by adding user to new group
   sudo groupadd -f teacher
   sudo usermod -a -G teacher $TEACHER_ACCOUNT
 
   # init dirs
-  mkdir -p ~/assignments
-  chown :teacher ~/assignments
-  chmod 075 ~/assignments
+  mkdir -p ./assignments
+  chown :teacher ./assignments
+  chmod 075 ./assignments
 
-  # setgid bit, so all new folders within automatically inherit group 
-  chmod g+s ~/assignments
+  # setgid bit, so all new folders within automatically inherit parent group
+  chmod g+s ./assignments
+
+  echo 'Directory initialized. You can now add students with --add_students.'
+}
+
+function add_students {
+  echo 'Please enter student accounts, use ; as delimiter'
+  read STUDENT_ACCOUNTS
 
   # create dirs for all students, TODO check for existence account
   export IFS=";" # configure ; as the new delimiter
   for STUDENT_ACCOUNT in $STUDENT_ACCOUNTS; do
-    mkdir -p ~/assignments/$STUDENT_ACCOUNT
+    check_user $STUDENT_ACCOUNT
+    mkdir -p ./assignments/$STUDENT_ACCOUNT
     chown $STUDENT_ACCOUNT ~/assignments/$STUDENT_ACCOUNT
+    chmod 070 -R ./assignments/$STUDENT_ACCOUNT
   done
+
+  echo 'Succesfully initialized student directories, these are now locked down. Unlock with --unlock'
 }
 
 function lock_down {
-  chmod 070 -R ~/assignments/*
+  chmod 070 -R ./assignments/*
 }
 
 function unlock { 
-  chmod 770 -R ~/assignments/*
+  chmod 770 -R ./assignments/*
 }
+
+function check_user {
+  id $1 &> /dev/null
+  if [ $? -eq 1 ]; then # id gives a one as output if it fails
+    echo 'This account ($1) does not exist! Exiting now.'
+    exit 1
+  fi
+}
+
+# main
+if [ "$(whoami)" != "root" ]; then
+  echo 'You need to be root to run this script'
+  exit 1
+fi
+
+if [ "$1" == "--init" ]; then
+  init_dir
+elif [ "$1" == "--add_students" ]; then
+  add_students
+elif [ "$1" == "--lock_down" ]; then
+  lock_down
+elif [ "$1" == "--unlock" ]; then
+  unlock
+else
+  usage
+fi
