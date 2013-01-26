@@ -5,16 +5,31 @@ function usage {
   echo 'Help the lazy teacher doing his hard work by setting up '
   echo ''
   echo '  --init          Initialize an assignments directory in current directory. By default it is locked down.'
-  echo '  --add_students  Add student directories to the assignments directory.'
-  echo '  --lock_down     Lock down the assignments directory for all students.'
+  echo '  --add-students  Add student directories to the assignments directory.'
+  echo '  --lock-down     Lock down the assignments directory for all students.'
   echo '  --unlock        Unlock the assignments directory for all students.'
+  echo '  --help          Show this help message.'
 }
 
 function init_dir {
+  check_group_exists teacher
+
+  if [ -d "assignments" ]; then
+    echo 'The assignments directory already exists! Are you sure you want to continue?'
+    echo 'All files will be removed. (yes/no)'
+    read CONTINUE_INIT
+
+    if [ "$CONTINUE_INIT" != "yes" ]; then
+      exit 1
+    else
+      rm -rf ./assignments
+    fi
+  fi
+
   echo "Please enter the teacher's account:"
   read TEACHER_ACCOUNT
 
-  check_user $TEACHER_ACCOUNT
+  check_user_exists $TEACHER_ACCOUNT
 
   sudo groupadd -f teacher
   sudo usermod -a -G teacher $TEACHER_ACCOUNT
@@ -27,7 +42,7 @@ function init_dir {
   # setgid bit, so all new folders within automatically inherit parent group
   chmod g+s ./assignments
 
-  echo 'Directory initialized. You can now add students with --add_students.'
+  echo 'Directory initialized. You can now add students with --add-students.'
 }
 
 function add_students {
@@ -35,11 +50,11 @@ function add_students {
   read STUDENT_ACCOUNTS
 
   # create dirs for all students, TODO check for existence account
-  export IFS=";" # configure ; as the new delimiter
+  export IFS=";" # set ; as the new delimiter
   for STUDENT_ACCOUNT in $STUDENT_ACCOUNTS; do
     check_user $STUDENT_ACCOUNT
     mkdir -p ./assignments/$STUDENT_ACCOUNT
-    chown $STUDENT_ACCOUNT ~/assignments/$STUDENT_ACCOUNT
+    chown $STUDENT_ACCOUNT ./assignments/$STUDENT_ACCOUNT
     chmod 070 -R ./assignments/$STUDENT_ACCOUNT
   done
 
@@ -51,14 +66,27 @@ function lock_down {
 }
 
 function unlock { 
-  chmod 770 -R ./assignments/*
+  chmod 740 -R ./assignments/*
 }
 
-function check_user {
+function check_user_exists {
   id $1 &> /dev/null
-  if [ $? -eq 1 ]; then # id gives a one as output if it fails
-    echo 'This account ($1) does not exist! Exiting now.'
+  if [ $? -eq 1 ]; then # id returns 1 if it fails
+    echo "This user account ($1) does not exist! Exiting now."
     exit 1
+  fi
+}
+
+function check_group_exists {
+  getent group $1 &> /dev/null
+  if [ $? -eq 0 ]; then # id returns 0 if it exists
+    echo "This user group ($1) does already exist!"
+    echo 'Do you want it to be removed before continuing? (yes/no)'
+    read CONTINUE_GROUP
+
+    if [ "$CONTINUE_GROUP" == "yes" ]; then
+      groupdel $1
+    fi
   fi
 }
 
@@ -70,9 +98,9 @@ fi
 
 if [ "$1" == "--init" ]; then
   init_dir
-elif [ "$1" == "--add_students" ]; then
+elif [ "$1" == "--add-students" ]; then
   add_students
-elif [ "$1" == "--lock_down" ]; then
+elif [ "$1" == "--lock-down" ]; then
   lock_down
 elif [ "$1" == "--unlock" ]; then
   unlock
