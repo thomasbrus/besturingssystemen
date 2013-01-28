@@ -19,4 +19,4 @@ The original program does not output `%p`, but instead prints a pointer location
 We added the format `%s` to printf() to ensure that the given input is printed as a string.
 
 ## Fragment 3
-In the original code, it only checked whether the given memory block size was not too big. However, it was still allowed to call malloc(0) or call malloc() with a negative integer. The program now makes sure that the given integer is between 0 and 101. Secondly, the program did not check whether there was a parameter set. We also added a check for that. 
+In the original code, it only checked whether the given memory block size was not too big. However, it was still allowed to call malloc(0) or call malloc() with a negative integer. If the function atoi() can not convert the given string to an integer (like "abc"), it returns 0, which is not useful in here. Therefore, the program now makes sure that the given integer is between 0 and 101. Secondly, the program did not check whether a parameter (which is used for atoi() ) was given and whether the given parameter was not too long; a numeric oferflow could have been the result.
