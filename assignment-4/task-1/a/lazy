@@ -2,7 +2,7 @@
 
 function usage {
   echo 'Usage: lazy [OPTION]'
-  echo 'Help the lazy teacher doing his hard work by setting up '
+  echo 'Help the lazy teacher doing his hard work by setting up a working directory for his students'
   echo ''
   echo '  --init          Initialize an assignments directory in current directory. By default it is locked down.'
   echo '  --add-students  Add student directories to the assignments directory.'
