@@ -12,7 +12,6 @@ function usage {
 }
 
 function init_dir {
-
   if [ -d "assignments" ]; then
     echo 'The assignments directory already exists! Are you sure you want to continue?'
     echo 'All files will be removed. (yes/no)'
@@ -32,13 +31,12 @@ function init_dir {
 
   # init dirs
   mkdir -p ./assignments
-  setfacl -d -m o::- ./assignments/
-  setfacl -d -m u:$TEACHER_ACCOUNT:rwx ./assignments/
-  # Permit the owners to read and write
-  setfacl -d -m u::rwx ./assignments
-
-  # setgid bit, so all new folders within automatically inherit parent group
-  # chmod g+s ./assignments
+  chown $TEACHER_ACCOUNT ./assignments
+  setfacl -m o::rx ./assignments
+  setfacl -d -m u::- ./assignments
+  setfacl -d -m o::- ./assignments
+  setfacl -m u:$TEACHER_ACCOUNT:rwx ./assignments
+  setfacl -d -m u:$TEACHER_ACCOUNT:rwx ./assignments
 
   echo 'Directory initialized. You can now add students with --add-students.'
 }
@@ -47,16 +45,13 @@ function add_students {
   echo 'Please enter student accounts, use ; as delimiter'
   read STUDENT_ACCOUNTS
 
-  # create dirs for all students, TODO check for existence account
+  # create dirs for all students
   export IFS=";" # set ; as the new delimiter
   for STUDENT_ACCOUNT in $STUDENT_ACCOUNTS; do
     check_user_exists $STUDENT_ACCOUNT
     mkdir -p ./assignments/$STUDENT_ACCOUNT
     chown $STUDENT_ACCOUNT ./assignments/$STUDENT_ACCOUNT
   done
-
-
-    setfacl -m u::- ./assignments/*
 
   echo 'Succesfully initialized student directories, these are now locked down. Unlock with --unlock'
 }
@@ -77,16 +72,10 @@ function check_user_exists {
   fi
 }
 
-function check_group_exists {
-  getent group $1 &> /dev/null
-  if [ $? -eq 0 ]; then # id returns 0 if it exists
-    echo "This user group ($1) does already exist!"
-    echo 'Do you want it to be removed before continuing? (yes/no)'
-    read CONTINUE_GROUP
-
-    if [ "$CONTINUE_GROUP" == "yes" ]; then
-      groupdel $1
-    fi
+function check_directory_exist {
+  if [ ! -d 'assignments' ]; then
+    echo "Directory doesn't exist. Please run again with --init."
+    exit 1
   fi
 }
 
@@ -99,10 +88,13 @@ fi
 if [ "$1" == "--init" ]; then
   init_dir
 elif [ "$1" == "--add-students" ]; then
+  check_directory_exist
   add_students
 elif [ "$1" == "--lock-down" ]; then
+  check_directory_exist
   lock_down
 elif [ "$1" == "--unlock" ]; then
+  check_directory_exist
   unlock
 else
   usage
