@@ -37,11 +37,12 @@ function init_dir {
   # init dirs
   mkdir -p ./assignments
   chown :teacher ./assignments
-  chmod 075 ./assignments
+  chmod 0075 ./assignments
 
-  # setgid bit, so all new folders within automatically inherit parent group
+  # set setgid bit, so all new folders within automatically inherit parent group
   chmod g+s ./assignments
 
+  echo "You're (now) part of the teacher group. If you weren't before, you have to login again to apply these changes."
   echo 'Directory initialized. You can now add students with --add-students.'
 }
 
@@ -49,24 +50,24 @@ function add_students {
   echo 'Please enter student accounts, use ; as delimiter'
   read STUDENT_ACCOUNTS
 
-  # create dirs for all students, TODO check for existence account
+  # create dirs for all students
   export IFS=";" # set ; as the new delimiter
   for STUDENT_ACCOUNT in $STUDENT_ACCOUNTS; do
-    check_user $STUDENT_ACCOUNT
+    check_user_exists $STUDENT_ACCOUNT
     mkdir -p ./assignments/$STUDENT_ACCOUNT
     chown $STUDENT_ACCOUNT ./assignments/$STUDENT_ACCOUNT
-    chmod 070 -R ./assignments/$STUDENT_ACCOUNT
+    chmod 0070 -R ./assignments/$STUDENT_ACCOUNT
   done
 
   echo 'Succesfully initialized student directories, these are now locked down. Unlock with --unlock'
 }
 
 function lock_down {
-  chmod 070 -R ./assignments/*
+  chmod 0070 -R ./assignments/*
 }
 
 function unlock { 
-  chmod 740 -R ./assignments/*
+  chmod 0770 -R ./assignments/*
 }
 
 function check_user_exists {
@@ -90,6 +91,13 @@ function check_group_exists {
   fi
 }
 
+function check_directory_exist {
+  if [ ! -d 'assignments' ]; then
+    echo "Directory doesn't exist. Please run again with --init."
+    exit 1
+  fi
+}
+
 # main
 if [ "$(whoami)" != "root" ]; then
   echo 'You need to be root to run this script'
@@ -99,10 +107,13 @@ fi
 if [ "$1" == "--init" ]; then
   init_dir
 elif [ "$1" == "--add-students" ]; then
+  check_directory_exist
   add_students
 elif [ "$1" == "--lock-down" ]; then
+  check_directory_exist
   lock_down
 elif [ "$1" == "--unlock" ]; then
+  check_directory_exist
   unlock
 else
   usage

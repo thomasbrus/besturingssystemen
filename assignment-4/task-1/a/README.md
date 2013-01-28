@@ -1,5 +1,5 @@
 # Documentation on task 1a
--------------------------
+--------------------------
 ## How to run the program?  
 Run
 
@@ -12,9 +12,9 @@ The program starts by checking whether it is run as root, and (when started with
 It then asks for the teacher account and an assignments directory is built in the current directory. When the script is run again with `--add-students`, for every given student account a directory within the assignments directory is created. Existence of every user account is checked before continuing the bash script.
 
 ### Rights management
-The assignments directory is owned by the `teacher` group, and every student directory is owned by the student himself. Because the `setgid` bit is set, all new subdirectories will inherit the group from their parent (thus, `teacher`). After set-up the new directories are locked down (or all with `--lock-down`) by putting 070 rights on those student directories. In this manner, only the group has r+w+x rights, and because the teacher account is part of the group which owns the directories, he can access everything.
+The assignments directory is owned by the `teacher` group, and every student directory is owned by the student himself. Because the `setgid` bit is set, all new subdirectories will inherit the group from their parent (thus, `teacher`). After set-up the new directories are locked down (or all with `--lock-down`) by putting 0070 rights on those student directories. In this manner, only the group has r+w+x rights, and because the teacher account is part of the group which owns the directories, he can access everything.
 
-When is it unlocked (with `--unlock`), the rights on the student directories are set to 740. By this, the owner (which is for every student directory the student himself) gets r+w+x rights, and the teacher can only view or execute stuff. Everybody else (like other students) cannot see anything within the folder.
+When is it unlocked (with `--unlock`), the rights on the student directories are set to 0770. By this, the owner (which is for every student directory the student himself) gets r+w+x rights. Everybody else (like other students) cannot see anything within the folder.
 `sticky` and `setuid` bits are not used.
 
 ## What shortcomings do we still have?
